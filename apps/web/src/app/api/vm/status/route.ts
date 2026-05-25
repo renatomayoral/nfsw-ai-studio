@@ -2,6 +2,15 @@ import { NextResponse } from 'next/server'
 import { GCPProvider } from '@repo/cloud-infra/gcp'
 import { RunPodProvider } from '@repo/cloud-infra/runpod'
 
+const TIMEOUT_MS = 5000
+
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ])
+}
+
 function getProvider() {
   const cloud = process.env['CLOUD_PROVIDER'] ?? 'gcp'
   if (cloud === 'runpod') {
@@ -22,8 +31,8 @@ export async function GET() {
         : (process.env['GCP_INSTANCE_NAME'] ?? '')
 
     const [status, metrics] = await Promise.all([
-      provider.getStatus(instanceId),
-      provider.getMetrics(instanceId).catch(() => null),
+      withTimeout(provider.getStatus(instanceId), TIMEOUT_MS, 'UNKNOWN' as const),
+      withTimeout(provider.getMetrics(instanceId).catch(() => null), TIMEOUT_MS, null),
     ])
 
     return NextResponse.json({ status, metrics })
