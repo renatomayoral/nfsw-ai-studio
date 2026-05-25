@@ -72,6 +72,7 @@ steps:
         echo "VM is RUNNING — deploying $$IMAGE"
 
         # Build the remote command as a single string (avoids heredoc/stdin issues with IAP)
+        # renato is in docker group (no sudo needed); uses VM metadata ADC for gcloud auth
         REMOTE_CMD="set -e
         gcloud auth configure-docker us-central1-docker.pkg.dev -q
         docker pull '$$IMAGE'
@@ -82,14 +83,13 @@ steps:
           --runtime=nvidia --gpus all \
           -p 8188:8188 \
           -v /data:/data \
-          -v /root/.config/gcloud:/root/.config/gcloud:ro \
           -e GCS_BUCKET='$$GCS_BUCKET' \
           -e CLOUD_PROVIDER=gcp \
           --restart unless-stopped \
           '$$IMAGE'
         echo 'Container updated to $$IMAGE'"
 
-        gcloud compute ssh "root@$$INSTANCE" \
+        gcloud compute ssh "renato@$$INSTANCE" \
           --zone="$$ZONE" \
           --project="$$CB_PROJECT" \
           --tunnel-through-iap \
