@@ -121,14 +121,14 @@ export default function SettingsPage() {
               }
               className="grid grid-cols-2 gap-3"
             >
-              <label className="flex items-center gap-3 rounded-lg border p-4 cursor-pointer has-[:checked]:border-primary">
+              <label className="flex items-center gap-3 rounded-lg border p-4 cursor-pointer has-checked:border-primary">
                 <RadioGroupItem value="gcp" id="gcp" />
                 <div>
                   <p className="font-medium">☁️ Google Cloud</p>
                   <p className="text-xs text-muted-foreground">VM dedicada</p>
                 </div>
               </label>
-              <label className="flex items-center gap-3 rounded-lg border p-4 cursor-pointer has-[:checked]:border-primary">
+              <label className="flex items-center gap-3 rounded-lg border p-4 cursor-pointer has-checked:border-primary">
                 <RadioGroupItem value="runpod" id="runpod" />
                 <div>
                   <p className="font-medium">⚡ RunPod</p>
