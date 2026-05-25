@@ -28,6 +28,7 @@ steps:
       - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-studio/comfyui:latest'
 
   # 3. If the VM is running, update the container in-place via SSH
+  # Bash vars that Cloud Build should NOT expand use $$ prefix
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: deploy-if-running
     waitFor: [push-latest]
@@ -36,32 +37,28 @@ steps:
       - '-c'
       - |
         set -e
-        INSTANCE="${_INSTANCE_NAME}"
-        ZONE="${_ZONE}"
-        PROJECT="$PROJECT_ID"
+        # Cloud Build substitutions (expanded by Cloud Build before bash runs)
         IMAGE="us-central1-docker.pkg.dev/$PROJECT_ID/ai-studio/comfyui:$SHORT_SHA"
 
-        # Check if VM exists and is running
-        STATUS=$(gcloud compute instances describe "${INSTANCE}" \
-          --zone="${ZONE}" \
-          --project="${PROJECT}" \
+        # Check if VM exists and is running ($$STATUS = bash variable, not CB substitution)
+        $$STATUS=$$(gcloud compute instances describe ${_INSTANCE_NAME} \
+          --zone=${_ZONE} \
+          --project=$PROJECT_ID \
           --format='value(status)' 2>/dev/null || echo "NOT_FOUND")
 
-        echo "VM status: ${STATUS}"
+        echo "VM status: $$STATUS"
 
-        if [ "${STATUS}" = "RUNNING" ]; then
+        if [ "$$STATUS" = "RUNNING" ]; then
           echo "VM is running — updating container..."
-          gcloud compute ssh "${INSTANCE}" \
-            --zone="${ZONE}" \
-            --project="${PROJECT}" \
+          gcloud compute ssh ${_INSTANCE_NAME} \
+            --zone=${_ZONE} \
+            --project=$PROJECT_ID \
             --tunnel-through-iap \
+            --strict-host-key-checking=no \
             --command="
               set -e
-              # Authenticate Docker with Artifact Registry
               gcloud auth configure-docker us-central1-docker.pkg.dev -q
-              # Pull new image
               docker pull ${IMAGE}
-              # Restart container with new image
               docker stop ai-studio-comfyui 2>/dev/null || true
               docker rm ai-studio-comfyui 2>/dev/null || true
               docker run -d \
@@ -75,10 +72,10 @@ steps:
                 -e CLOUD_PROVIDER=gcp \
                 --restart unless-stopped \
                 ${IMAGE}
-              echo '✓ Container updated'
+              echo 'Container updated'
             "
         else
-          echo "VM is ${STATUS} — skipping live deploy. New image will be used on next start."
+          echo "VM is $$STATUS — skipping live deploy. New image will be used on next start."
         fi
 
 substitutions:
