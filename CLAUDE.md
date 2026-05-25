@@ -3,10 +3,12 @@
 Monorepo com Turborepo + Next.js 16 para gerenciar ambiente de geração de vídeo/imagem com IA no Google Cloud (ComfyUI + Wan 2.2 + FLUX.1), com suporte a RunPod como provider alternativo e persistência permanente de outputs via Google Cloud Storage.
 
 ## Projeto GCP
-- **Nome**: liberlaser > adsmetrics
-- **Número**: 595978411838
-- **ID**: `mktia-486913` ← usar SEMPRE em comandos gcloud
-- **Bucket de outputs**: `mktia-486913-outputs`
+- **Nome**: liberlaser > AI Studio
+- **Número**: 448251250847
+- **ID**: `mktia-ai-studio` ← usar SEMPRE em comandos gcloud
+- **Organização**: liberlaser.com (ID: 1055618027140)
+- **Billing Account**: FYGRAPH (01E2E4-6D42DB-07D06C)
+- **Bucket de outputs**: `mktia-ai-studio-outputs`
 - **Auth local**: `gcloud auth application-default login` (sem service account key file)
 
 ## GitHub
@@ -80,15 +82,15 @@ nfsw-ai-studio/
 
 ```typescript
 const GCP_DEFAULTS = {
-  projectId: 'mktia-486913',
-  projectNumber: '595978411838',
+  projectId: 'mktia-ai-studio',
+  projectNumber: '448251250847',
   defaultZone: 'us-central1-a',
   defaultRegion: 'us-central1',
 } as const
 
 const GCS_DEFAULTS = {
-  projectId: 'mktia-486913',
-  bucketName: 'mktia-486913-outputs',
+  projectId: 'mktia-ai-studio',
+  bucketName: 'mktia-ai-studio-outputs',
 } as const
 
 const RUNPOD_DEFAULTS = {
@@ -107,15 +109,15 @@ const RUNPOD_DEFAULTS = {
 // src/types/settings.ts
 export type AppSettings = {
   cloudProvider: 'gcp' | 'runpod'
-  gcpProjectId: string        // default: 'mktia-486913'
-  gcpProjectNumber: string    // default: '595978411838'
+  gcpProjectId: string        // default: 'mktia-ai-studio'
+  gcpProjectNumber: string    // default: '448251250847'
   gcpInstanceName: string
   gcpZone: string             // default: 'us-central1-a'
   runpodApiKey?: string
   runpodGpuType?: string
   runpodPodId?: string
   runpodDockerImage?: string  // default: 'ghcr.io/renatomayoral/nfsw-ai-studio:latest'
-  gcsBucketName: string       // default: 'mktia-486913-outputs'
+  gcsBucketName: string       // default: 'mktia-ai-studio-outputs'
   autoUpload: boolean         // default: true
   hfToken: string
   autoShutdownHours: number | null
@@ -288,7 +290,7 @@ export function createWanI2VWorkflow(params: WanI2VParams): ComfyWorkflow
 ### `/settings`
 - RadioGroup: "Google Cloud" | "RunPod"
 - Form condicional por provider (react-hook-form + zod)
-  - GCP: Project ID (mktia-486913), Project Number (595978411838), Instance Name, Zone
+  - GCP: Project ID (mktia-ai-studio), Project Number (448251250847), Instance Name, Zone
   - RunPod: API Key, GPU Type, Pod Name, Docker Image
 - Seção Storage: bucket name, verificar bucket, stats, Switch auto-upload
 - Select auto-shutdown (1h, 2h, 4h, nunca)
@@ -363,12 +365,12 @@ gcloud compute ssh INSTANCE_NAME --project=mktia-486913 -- -L 8188:localhost:818
 
 ```bash
 # GCP (auth via application-default, não precisa de key file)
-GCP_PROJECT=mktia-486913
+GCP_PROJECT=mktia-ai-studio
 GCP_ZONE=us-central1-a
 GCP_INSTANCE_NAME=
 
 # GCS
-GCS_BUCKET=mktia-486913-outputs
+GCS_BUCKET=mktia-ai-studio-outputs
 
 # RunPod
 RUNPOD_API_KEY=
