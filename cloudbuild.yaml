@@ -41,7 +41,7 @@ steps:
       - '--format=value(status)'
     entrypoint: gcloud
 
-  # 4. Deploy script — writes VM status to file, then conditionally deploys
+  # 4. Deploy script — conditionally deploys to VM if RUNNING
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: deploy-if-running
     waitFor: [check-vm]
@@ -57,7 +57,6 @@ steps:
       - 'pipefail'
       - '-c'
       - |
-        # All values come from env vars injected above — no Cloud Build substitutions in bash text
         VM_STATUS=$$(gcloud compute instances describe "$$INSTANCE" \
           --zone="$$ZONE" \
           --project="$$CB_PROJECT" \
@@ -66,20 +65,16 @@ steps:
         echo "VM status: $$VM_STATUS"
 
         if [ "$$VM_STATUS" != "RUNNING" ]; then
-          echo "VM is $$VM_STATUS — skipping live deploy. New image used on next boot."
+          echo "VM is $$VM_STATUS — skipping live deploy. Image will be used on next boot."
           exit 0
         fi
 
         echo "VM is RUNNING — deploying $$IMAGE"
-        gcloud compute ssh "$$INSTANCE" \
-          --zone="$$ZONE" \
-          --project="$$CB_PROJECT" \
-          --tunnel-through-iap \
-          --strict-host-key-checking=no \
-          -- bash -s << ENDSSH
-        set -e
+
+        # Build the remote command as a single string (avoids heredoc/stdin issues with IAP)
+        REMOTE_CMD="set -e
         gcloud auth configure-docker us-central1-docker.pkg.dev -q
-        docker pull "$$IMAGE"
+        docker pull '$$IMAGE'
         docker stop ai-studio-comfyui 2>/dev/null || true
         docker rm   ai-studio-comfyui 2>/dev/null || true
         docker run -d \
@@ -88,12 +83,19 @@ steps:
           -p 8188:8188 \
           -v /data:/data \
           -v /root/.config/gcloud:/root/.config/gcloud:ro \
-          -e GCS_BUCKET="$$GCS_BUCKET" \
+          -e GCS_BUCKET='$$GCS_BUCKET' \
           -e CLOUD_PROVIDER=gcp \
           --restart unless-stopped \
-          "$$IMAGE"
-        echo "Container updated to $$IMAGE"
-        ENDSSH
+          '$$IMAGE'
+        echo 'Container updated to $$IMAGE'"
+
+        gcloud compute ssh "$$INSTANCE" \
+          --zone="$$ZONE" \
+          --project="$$CB_PROJECT" \
+          --tunnel-through-iap \
+          --ssh-user=root \
+          --strict-host-key-checking=no \
+          --command="$$REMOTE_CMD"
 
 substitutions:
   _INSTANCE_NAME: ai-studio-vm
