@@ -18,12 +18,13 @@ if command -v nvidia-smi &>/dev/null; then
 fi
 
 # Set ComfyUI flags based on VRAM
+# Note: --fp8_e4m3fn-unet is the specific flag (--fp8_e4m3fn is ambiguous in newer ComfyUI)
 if [ "${VRAM_GB}" -ge 70 ]; then
     COMFYUI_FLAGS="--gpu-only --bf16-unet"
 elif [ "${VRAM_GB}" -ge 38 ]; then
-    COMFYUI_FLAGS="--gpu-only --fp8_e4m3fn"
+    COMFYUI_FLAGS="--gpu-only --fp8_e4m3fn-unet"
 else
-    COMFYUI_FLAGS="--gpu-only --fp8_e4m3fn --lowvram"
+    COMFYUI_FLAGS="--gpu-only --fp8_e4m3fn-unet --lowvram"
 fi
 
 echo "ComfyUI flags: ${COMFYUI_FLAGS}"
@@ -37,6 +38,6 @@ fi
 # Start ComfyUI
 cd "${COMFYUI_PATH}"
 exec python3 main.py \
-    --listen 0.0.0.0 \
+    --listen 127.0.0.1 \
     --port 8188 \
     ${COMFYUI_FLAGS}
