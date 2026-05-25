@@ -30,7 +30,8 @@ export class GCPProvider implements CloudProvider {
   }
 
   async createInstance(config: InstanceConfig): Promise<Instance> {
-    const [operation] = await this.instancesClient.insert({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = (await this.instancesClient.insert({
       project: this.projectId,
       zone: this.zone,
       instanceResource: {
@@ -55,7 +56,7 @@ export class GCPProvider implements CloudProvider {
             accessConfigs: [{ type: 'ONE_TO_ONE_NAT', name: 'External NAT' }],
           },
         ],
-        accelerators: config.gpuType
+        guestAccelerators: config.gpuType
           ? [
               {
                 acceleratorType: `zones/${this.zone}/acceleratorTypes/${config.gpuType}`,
@@ -76,11 +77,10 @@ export class GCPProvider implements CloudProvider {
         },
         labels: config.labels,
       },
-    })
+    // v6 return type is `Promise<[...]> & void`, use explicit cast
+    })) as unknown as [{ name?: string }]
 
-    await this.waitForOperation(
-      (operation as { name?: string }).name ?? '',
-    )
+    await this.waitForOperation(result[0]?.name ?? '')
 
     return {
       id: config.name,
