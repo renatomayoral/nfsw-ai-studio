@@ -1,0 +1,14 @@
+comfyui:
+  base_path: /data/models
+  checkpoints: checkpoints/
+  clip: text_encoders/
+  clip_vision: clip_vision/
+  configs: configs/
+  controlnet: controlnet/
+  diffusion_models: diffusion_models/
+  embeddings: embeddings/
+  loras: loras/
+  unet: unet/
+  upscale_models: upscale_models/
+  vae: vae/
+  vae_approx: vae_approx/
