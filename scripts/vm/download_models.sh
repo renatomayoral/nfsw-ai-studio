@@ -82,35 +82,25 @@ download \
     "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/vae/wan2.2_vae.safetensors" \
     "${MODELS_PATH}/vae/wan2.2_vae.safetensors"
 
-# ── FLUX.1-dev — GATED, requires HF_TOKEN + accepted terms ───────────────────
-# Accept terms at: https://huggingface.co/black-forest-labs/FLUX.1-dev
+# ── FLUX.2-dev (open, no token needed) ───────────────────────────────────────
+# Better than FLUX.1-dev: improved quality + Mistral-3-Small text encoder
+# https://huggingface.co/Comfy-Org/flux2-dev
 echo ""
-if [ -n "${HF_TOKEN}" ]; then
-    echo "HF_TOKEN found — downloading FLUX.1-dev (~34GB)..."
+echo "Downloading FLUX.2-dev (~24GB)..."
 
-    download \
-        "https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/flux1-dev.safetensors" \
-        "${MODELS_PATH}/unet/flux1-dev.safetensors" \
-        "true"
+download \
+    "https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/diffusion_models/flux2_dev_fp8mixed.safetensors" \
+    "${MODELS_PATH}/diffusion_models/flux2_dev_fp8mixed.safetensors"
 
-    download \
-        "https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors" \
-        "${MODELS_PATH}/vae/ae.safetensors" \
-        "true"
+# FLUX.2 VAE
+download \
+    "https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/vae/flux2-vae.safetensors" \
+    "${MODELS_PATH}/vae/flux2-vae.safetensors"
 
-    # T5-XXL + CLIP-L for FLUX (open repo)
-    download \
-        "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp16.safetensors" \
-        "${MODELS_PATH}/text_encoders/t5xxl_fp16.safetensors"
-
-    download \
-        "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors" \
-        "${MODELS_PATH}/text_encoders/clip_l.safetensors"
-else
-    echo "⚠ HF_TOKEN not set — skipping FLUX.1-dev (image generation disabled)"
-    echo "  To enable: HF_TOKEN=hf_xxx bash download_models.sh"
-    echo "  Accept terms first: https://huggingface.co/black-forest-labs/FLUX.1-dev"
-fi
+# FLUX.2 Text Encoder: Mistral-3-Small FP8 (much better prompt understanding than T5-XXL)
+download \
+    "https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/text_encoders/mistral_3_small_flux2_fp8.safetensors" \
+    "${MODELS_PATH}/text_encoders/mistral_3_small_flux2_fp8.safetensors"
 
 echo ""
 echo "=== Download complete! ==="
