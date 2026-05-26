@@ -32,22 +32,22 @@ const jsonLd = {
   offers: [
     {
       '@type': 'Offer',
-      name: 'Starter',
-      price: '49',
+      name: 'Spark',
+      price: '12',
       priceCurrency: 'USD',
       billingIncrement: 'P1M',
     },
     {
       '@type': 'Offer',
       name: 'Creator',
-      price: '149',
+      price: '39',
       priceCurrency: 'USD',
       billingIncrement: 'P1M',
     },
     {
       '@type': 'Offer',
-      name: 'Studio',
-      price: '499',
+      name: 'Pro',
+      price: '99',
       priceCurrency: 'USD',
       billingIncrement: 'P1M',
     },
@@ -119,56 +119,57 @@ const steps = [
 // ─── Pricing data ─────────────────────────────────────────────────────────────
 const plans = [
   {
-    name: 'Starter',
-    price: '$49',
-    period: '/month',
-    description: 'Perfect for solo creators exploring AI generation.',
+    name: 'Spark',
+    price: '$12',
+    priceAnnual: '$9,60',
+    period: '/mês',
+    description: 'Para criadores que estão começando.',
     highlighted: false,
     features: [
-      '1,000 image generations/mo',
-      '100 video generations/mo',
-      '100 GB cloud storage',
-      'Standard GPU queue',
-      'FLUX.1 & Wan 2.2 models',
-      'Email support',
+      'Imagens ilimitadas*',
+      '100 fast + fila lenta',
+      '5 vídeos/dia (T2V)',
+      'Sem marca d\'água',
+      'Resolução até 1024px',
+      'Histórico 30 dias',
     ],
-    cta: 'Get Started',
+    cta: 'Assinar Spark',
     href: '/login',
   },
   {
     name: 'Creator',
-    price: '$149',
-    period: '/month',
-    description: 'For professional creators who need speed and scale.',
+    price: '$39',
+    priceAnnual: '$31,20',
+    period: '/mês',
+    description: 'O favorito de criadores profissionais.',
     highlighted: true,
     features: [
-      '5,000 image generations/mo',
-      '500 video generations/mo',
-      '500 GB cloud storage',
-      'Priority GPU queue',
-      'All AI models',
-      'API access',
-      '24/7 priority support',
+      'Imagens ilimitadas*',
+      '300 fast + fila lenta',
+      '20 vídeos/dia (T2V + I2V ✨)',
+      'LoRA personalizada',
+      'Resolução até 1280px',
+      'Histórico ilimitado',
     ],
-    cta: 'Start Creating',
+    cta: 'Assinar Creator',
     href: '/login',
   },
   {
-    name: 'Studio',
-    price: '$499',
-    period: '/month',
-    description: 'For studios, platforms, and power users.',
+    name: 'Pro',
+    price: '$99',
+    priceAnnual: '$79,20',
+    period: '/mês',
+    description: 'Para volume alto, API e estúdios.',
     highlighted: false,
     features: [
-      'Unlimited generations',
-      'Unlimited storage',
-      'Dedicated GPU instance',
-      'Custom model fine-tuning',
-      'White-label API',
-      'ComfyUI workflow import',
-      'SLA + dedicated support',
+      'Imagens ilimitadas*',
+      '1.000 fast + fila lenta',
+      '60 vídeos/dia (T2V + I2V)',
+      'Treinar LoRA própria',
+      'API REST (5 jobs paralelos)',
+      'Resolução até 1920px',
     ],
-    cta: 'Contact Sales',
+    cta: 'Assinar Pro',
     href: '/login',
   },
 ]
@@ -343,24 +344,24 @@ export default function LandingPage() {
               {/* CTAs */}
               <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
-                  href="/login"
+                  href="/try"
                   className="inline-flex items-center gap-2 rounded-xl px-8 py-4 text-base font-bold text-white transition-all hover:opacity-90 hover:scale-105 focus-visible:outline-2 focus-visible:outline-violet-500 shadow-lg shadow-violet-900/40"
                   style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}
                 >
-                  Start Creating Free
+                  Testar Agora — Sem Cadastro
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
                 <Link
                   href="#pricing"
                   className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-8 py-4 text-base font-semibold text-zinc-200 transition-all hover:bg-white/10 hover:border-white/20 focus-visible:outline-2 focus-visible:outline-white/30"
                 >
-                  View Pricing
+                  Ver Planos
                 </Link>
               </div>
 
               {/* Trust text */}
               <p className="mt-6 text-xs text-zinc-500">
-                No credit card required · Cancel anytime · GDPR compliant
+                Sem cartão de crédito · Cancele quando quiser · 18+ apenas
               </p>
             </div>
           </section>
@@ -539,6 +540,11 @@ export default function LandingPage() {
                         <span className="text-4xl font-extrabold text-white">{plan.price}</span>
                         <span className="mb-1 text-sm text-zinc-400">{plan.period}</span>
                       </div>
+                      {'priceAnnual' in plan && (
+                        <p className="mt-1 text-xs text-zinc-500">
+                          {plan.priceAnnual}/mês no plano anual (−20%)
+                        </p>
+                      )}
                     </div>
 
                     <ul className="mb-8 flex-1 space-y-3" aria-label={`${plan.name} plan features`}>
@@ -570,7 +576,10 @@ export default function LandingPage() {
               </div>
 
               <p className="mt-8 text-center text-xs text-zinc-500">
-                All plans include: FLUX.1 + Wan 2.2 models · Private cloud · GCS storage · Auto-shutdown · Monthly billing
+                Todos os planos incluem: FLUX.1 + Wan 2.2 · Cloud privado · Storage GCS · Auto-shutdown · Cobrança mensal
+              </p>
+              <p className="mt-2 text-center text-xs text-zinc-600">
+                * Imagens &quot;ilimitadas&quot; = fila rápida até o limite diário, depois fila lenta (sem bloqueio).
               </p>
             </div>
           </section>
@@ -652,21 +661,21 @@ export default function LandingPage() {
                   </p>
                   <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
                     <Link
-                      href="/login"
+                      href="/try"
                       className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-bold text-violet-900 transition-all hover:bg-violet-50 hover:scale-105 focus-visible:outline-2 focus-visible:outline-white shadow-lg"
                     >
-                      Get Started Free
+                      Testar Sem Cadastro
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
                     <Link
-                      href="#pricing"
+                      href="/login"
                       className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-8 py-4 text-base font-semibold text-white transition-all hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-white"
                     >
-                      See Pricing
+                      Criar Conta Grátis
                     </Link>
                   </div>
                   <p className="mt-6 text-xs text-violet-300">
-                    No credit card required · 18+ only · Cancel anytime
+                    Sem cartão de crédito · 18+ apenas · Cancele quando quiser
                   </p>
                 </div>
               </div>

@@ -1,12 +1,14 @@
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-import { schema } from './schema'
+import { schema } from './schema.js'
+
+type DB = ReturnType<typeof drizzle<typeof schema>>
 
 // Lazy singleton — connection is created on first use, not at import time.
 // This allows Next.js to build without DATABASE_URL being set.
-let _db: ReturnType<typeof drizzle> | null = null
+let _db: DB | null = null
 
-function getDb() {
+function getDb(): DB {
   if (_db) return _db
 
   const connectionString = process.env['DATABASE_URL']
@@ -21,7 +23,7 @@ function getDb() {
 }
 
 // Proxy that defers connection until first property access
-export const db = new Proxy({} as ReturnType<typeof drizzle>, {
+export const db = new Proxy({} as DB, {
   get(_target, prop) {
     return Reflect.get(getDb(), prop)
   },

@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, boolean, integer, date, uniqueIndex } from 'drizzle-orm/pg-core'
 
 // ─── Better Auth core tables ───────────────────────────────────────────────────
 
@@ -51,7 +51,7 @@ export const verification = pgTable('verification', {
   updatedAt: timestamp('updated_at').$defaultFn(() => new Date()),
 })
 
-// ─── Stripe subscription table (used by @better-auth/stripe plugin) ────────────
+// ─── Stripe subscription table (used by @better-auth/stripe plugin) ─────────
 
 export const subscription = pgTable('subscription', {
   id: text('id').primaryKey(),
@@ -70,10 +70,73 @@ export const subscription = pgTable('subscription', {
   updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
 })
 
+// ─── User profile — extra metadata not managed by Better Auth ────────────────
+
+export const userProfile = pgTable('user_profile', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  /** One-time welcome video perk for free accounts */
+  welcomeVideoUsed: boolean('welcome_video_used').$defaultFn(() => false).notNull(),
+  createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
+  updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
+})
+
+// ─── Daily usage quota per authenticated user ─────────────────────────────────
+// One row per (user, date). Resets automatically each new day via date key.
+
+export const usageQuota = pgTable(
+  'usage_quota',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    /** ISO date string YYYY-MM-DD — natural daily reset key */
+    date: date('date').notNull(),
+    /** Fast-queue image generations used today */
+    imagesFast: integer('images_fast').$defaultFn(() => 0).notNull(),
+    /** Slow-queue image generations used today (for stats only, no hard cap) */
+    imagesSlow: integer('images_slow').$defaultFn(() => 0).notNull(),
+    /** Fast-queue video generations used today */
+    videosFast: integer('videos_fast').$defaultFn(() => 0).notNull(),
+    /** Slow-queue video generations used today */
+    videosSlow: integer('videos_slow').$defaultFn(() => 0).notNull(),
+    createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
+    updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
+  },
+  (t) => [uniqueIndex('usage_quota_user_date_idx').on(t.userId, t.date)],
+)
+
+// ─── Anonymous session quota — IP/fingerprint-based ──────────────────────────
+// Tracks usage for unauthenticated visitors. Keyed by fingerprint hash.
+
+export const anonymousSession = pgTable('anonymous_session', {
+  id: text('id').primaryKey(),
+  /**
+   * SHA-256 hex of (anon_id cookie + IP address).
+   * Using both prevents trivial abuse via cookie deletion.
+   */
+  fingerprint: text('fingerprint').notNull().unique(),
+  /** ISO date string YYYY-MM-DD for daily reset */
+  date: date('date').notNull(),
+  /** Images generated today */
+  imagesCount: integer('images_count').$defaultFn(() => 0).notNull(),
+  /** Whether the one-time welcome video has been consumed */
+  welcomeVideoUsed: boolean('welcome_video_used').$defaultFn(() => false).notNull(),
+  createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
+  updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
+})
+
+// ─── Schema export ────────────────────────────────────────────────────────────
+
 export const schema = {
   user,
   session,
   account,
   verification,
   subscription,
+  userProfile,
+  usageQuota,
+  anonymousSession,
 }

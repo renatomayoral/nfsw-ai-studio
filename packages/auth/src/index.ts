@@ -24,10 +24,10 @@ export const auth = betterAuth({
       createCustomerOnSignUp: true,
       subscription: {
         enabled: true,
-        plans: Object.values(PLANS)
-          .filter((p) => p.priceId && p.priceId !== 'price_')
-          .map((p) => ({
-            name: p.label,
+        plans: Object.entries(PLANS)
+          .filter(([, p]) => p.priceId && p.priceId !== 'price_')
+          .map(([key, p]) => ({
+            name: key,          // 'spark' | 'creator' | 'pro'
             priceId: p.priceId,
           })),
       },
