@@ -59,7 +59,8 @@ RUN git clone --depth=1 https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.
     pip3 install --no-cache-dir -r ComfyUI-VideoHelperSuite/requirements.txt
 
 RUN git clone --depth=1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
-    pip3 install --no-cache-dir -r ComfyUI-WanVideoWrapper/requirements.txt 2>/dev/null || true
+    pip3 install --no-cache-dir -r ComfyUI-WanVideoWrapper/requirements.txt 2>/dev/null || true && \
+    pip3 install --no-cache-dir transformers>=4.45.0 tokenizers sentencepiece
 
 RUN git clone --depth=1 https://github.com/Fannovel16/comfyui_controlnet_aux.git && \
     pip3 install --no-cache-dir -r comfyui_controlnet_aux/requirements.txt 2>/dev/null || true

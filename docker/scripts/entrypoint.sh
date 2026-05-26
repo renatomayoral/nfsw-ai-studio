@@ -37,7 +37,10 @@ fi
 
 # Start ComfyUI
 cd "${COMFYUI_PATH}"
+# ComfyUI listens on 0.0.0.0 INSIDE the container so Docker NAT can forward.
+# Security is enforced by the Docker binding: -p 127.0.0.1:8188:8188
+# which restricts access to VM localhost only (not public internet).
 exec python3 main.py \
-    --listen 127.0.0.1 \
+    --listen 0.0.0.0 \
     --port 8188 \
     ${COMFYUI_FLAGS}

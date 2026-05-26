@@ -11,19 +11,19 @@
     "clean": "rm -rf .next dist"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.4.0",
     "@repo/cloud-infra": "workspace:*",
     "@repo/comfyui-client": "workspace:*",
     "@repo/gcs-storage": "workspace:*",
     "@repo/shared": "workspace:*",
     "@repo/ui": "workspace:*",
     "@tanstack/react-query": "^5.100.14",
-    "@hookform/resolvers": "^5.4.0",
+    "lucide-react": "^1.16.0",
     "next": "16.2.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.76.1",
     "zod": "^4.4.3",
-    "lucide-react": "^1.16.0",
     "zustand": "^5.0.13"
   },
   "devDependencies": {
