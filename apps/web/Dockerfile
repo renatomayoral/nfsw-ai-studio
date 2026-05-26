@@ -57,8 +57,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static     ./apps/web/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public            ./apps/web/public
 
+# WebSocket proxy wrapper (patches http.createServer before Next.js runs)
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/ws-server.mjs    ./ws-server.mjs
+
 USER nextjs
 EXPOSE 8080
 
-# server.js is at apps/web/server.js inside the standalone folder
-CMD ["node", "apps/web/server.js"]
+# ws-server.mjs wraps server.js and adds WebSocket proxy for ComfyUI
+CMD ["node", "ws-server.mjs"]

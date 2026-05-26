@@ -10,7 +10,7 @@ export function GoogleSignInButton() {
     setLoading(true)
     await authClient.signIn.social({
       provider: 'google',
-      callbackURL: '/admin',
+      callbackURL: '/studio',
     })
     // loading stays true while redirect happens
   }
