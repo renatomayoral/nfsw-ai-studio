@@ -48,7 +48,8 @@ export class ComfyUIClient {
     })
 
     if (!res.ok) {
-      throw new Error(`ComfyUI submit failed: ${res.status} ${res.statusText}`)
+      const body = await res.text().catch(() => '')
+      throw new Error(`ComfyUI submit failed: ${res.status} ${res.statusText} — ${body}`)
     }
 
     const data = (await res.json()) as ComfyPromptResponse
