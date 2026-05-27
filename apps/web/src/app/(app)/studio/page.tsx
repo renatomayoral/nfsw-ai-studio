@@ -320,10 +320,16 @@ function GenerateFormFields({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <SliderField label={`Largura: ${values.width}px`} min={256} max={2048} step={64}
-            value={values.width} onChange={(v) => setValue('width', v)} />
-          <SliderField label={`Altura: ${values.height}px`} min={256} max={2048} step={64}
-            value={values.height} onChange={(v) => setValue('height', v)} />
+          <SliderField
+            label={`Largura: ${values.width}px`}
+            min={256} max={showFrames ? 832 : 1536} step={64}
+            value={values.width} onChange={(v) => setValue('width', v)}
+          />
+          <SliderField
+            label={`Altura: ${values.height}px`}
+            min={256} max={showFrames ? 832 : 1536} step={64}
+            value={values.height} onChange={(v) => setValue('height', v)}
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -334,8 +340,16 @@ function GenerateFormFields({
         </div>
 
         {showFrames && (
-          <SliderField label={`Frames: ${values.frames ?? 81}`} min={16} max={200} step={8}
-            value={values.frames ?? 81} onChange={(v) => setValue('frames', v)} />
+          <>
+            <SliderField
+              label={`Frames: ${values.frames ?? 49} (~${(((values.frames ?? 49) - 1) / 24).toFixed(1)}s @ 24fps)`}
+              min={25} max={81} step={4}
+              value={values.frames ?? 49} onChange={(v) => setValue('frames', v)}
+            />
+            <p className="text-xs text-muted-foreground -mt-2">
+              ⚡ 49 frames = ~2s · 81 frames = ~3.3s · máx recomendado: 81 na A100-40GB
+            </p>
+          </>
         )}
 
         <div className="flex items-center gap-3">

@@ -1,17 +1,16 @@
 import type { ComfyWorkflow, WanT2VParams, WanI2VParams } from '@repo/shared/types'
 
 /**
- * Wan 2.2 Text-to-Video workflow (two-stage diffusion)
+ * Wan 2.2 Text-to-Video workflow
+ *
+ * Uses only the high_noise model on GPUs < 80GB VRAM (e.g. A100-40GB).
+ * Loading both high_noise + low_noise simultaneously (~28GB UNet alone)
+ * leaves no room for activations on 40GB GPUs.
  *
  * Models on disk:
  *  - diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors
- *  - diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors
  *  - text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors
  *  - vae/wan2.2_vae.safetensors
- *
- * Wan 2.2 is a two-stage model:
- *  - Stage 1 (high_noise): full denoising pass — generates structure/motion
- *  - Stage 2 (low_noise):  refinement pass — sharpens details, reduces artifacts
  */
 export function createWanT2VWorkflow(params: WanT2VParams): ComfyWorkflow {
   const {
@@ -19,15 +18,11 @@ export function createWanT2VWorkflow(params: WanT2VParams): ComfyWorkflow {
     negativePrompt = 'low quality, blurry, distorted, ugly, watermark',
     width = 832,
     height = 480,
-    frames = 81,
+    frames = 49,   // 49 frames = ~2s @ 24fps; safer on 40GB than 81
     steps = 30,
     cfg = 6.0,
     seed = Math.floor(Math.random() * 2 ** 32),
   } = params
-
-  // Split steps roughly 60/40 between stages
-  const stepsHigh = Math.max(1, Math.round(steps * 0.6))
-  const stepsLow  = Math.max(1, steps - stepsHigh)
 
   return {
     // ── Model loaders ──────────────────────────────────────────────────────
@@ -39,94 +34,57 @@ export function createWanT2VWorkflow(params: WanT2VParams): ComfyWorkflow {
       },
     },
     '2': {
-      class_type: 'UNETLoader',
-      inputs: {
-        unet_name: 'wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors',
-        weight_dtype: 'fp8_e4m3fn',
-      },
-    },
-    '3': {
       class_type: 'CLIPLoader',
       inputs: {
         clip_name: 'umt5_xxl_fp8_e4m3fn_scaled.safetensors',
         type: 'wan',
       },
     },
-    '4': {
+    '3': {
       class_type: 'VAELoader',
       inputs: {
         vae_name: 'wan2.2_vae.safetensors',
       },
     },
     // ── Text encoding ──────────────────────────────────────────────────────
+    '4': {
+      class_type: 'CLIPTextEncode',
+      inputs: { clip: ['2', 0], text: prompt },
+    },
     '5': {
       class_type: 'CLIPTextEncode',
-      inputs: {
-        clip: ['3', 0],
-        text: prompt,
-      },
-    },
-    '6': {
-      class_type: 'CLIPTextEncode',
-      inputs: {
-        clip: ['3', 0],
-        text: negativePrompt,
-      },
+      inputs: { clip: ['2', 0], text: negativePrompt },
     },
     // ── Latent ────────────────────────────────────────────────────────────
-    '7': {
+    '6': {
       class_type: 'EmptyWanLatentVideo',
-      inputs: {
-        width,
-        height,
-        length: frames,
-        batch_size: 1,
-      },
+      inputs: { width, height, length: frames, batch_size: 1 },
     },
-    // ── Stage 1: high_noise sampling (structure + motion) ─────────────────
-    '8': {
+    // ── Sampling ──────────────────────────────────────────────────────────
+    '7': {
       class_type: 'KSampler',
       inputs: {
         model: ['1', 0],
-        positive: ['5', 0],
-        negative: ['6', 0],
-        latent_image: ['7', 0],
+        positive: ['4', 0],
+        negative: ['5', 0],
+        latent_image: ['6', 0],
         sampler_name: 'euler',
         scheduler: 'linear',
-        steps: stepsHigh,
+        steps,
         cfg,
         seed,
         denoise: 1.0,
       },
     },
-    // ── Stage 2: low_noise refinement (sharpening + detail) ───────────────
-    '9': {
-      class_type: 'KSampler',
-      inputs: {
-        model: ['2', 0],
-        positive: ['5', 0],
-        negative: ['6', 0],
-        latent_image: ['8', 0],  // feeds from stage 1 output
-        sampler_name: 'euler',
-        scheduler: 'linear',
-        steps: stepsLow,
-        cfg,
-        seed,
-        denoise: 0.5,
-      },
-    },
     // ── Decode + Save ─────────────────────────────────────────────────────
-    '10': {
+    '8': {
       class_type: 'VAEDecode',
-      inputs: {
-        samples: ['9', 0],
-        vae: ['4', 0],
-      },
+      inputs: { samples: ['7', 0], vae: ['3', 0] },
     },
-    '11': {
+    '9': {
       class_type: 'VHS_VideoCombine',
       inputs: {
-        images: ['10', 0],
+        images: ['8', 0],
         frame_rate: 24,
         loop_count: 0,
         filename_prefix: 'wan_t2v',
