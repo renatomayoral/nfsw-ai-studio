@@ -53,16 +53,21 @@ export function createWanT2VWorkflow(params: WanT2VParams): ComfyWorkflow {
       class_type: 'CLIPTextEncode',
       inputs: { clip: ['2', 0], text: negativePrompt },
     },
-    // ── Empty video latent (T2V — no start image) ─────────────────────────────
-    // Wan22ImageToVideoLatent without start_image = EmptyWanLatentVideo equivalent
+    // ── Video latent setup (T2V — no start image) ────────────────────────────
+    // WanImageToVideo without start_image creates a 48-channel latent
+    // (16 noise + 16 zeros image + 16 zeros mask) expected by the Wan UNet.
+    // Also returns image-aware conditionings (outputs 0 and 1).
     '6': {
-      class_type: 'Wan22ImageToVideoLatent',
+      class_type: 'WanImageToVideo',
       inputs: {
+        positive:   ['4', 0],
+        negative:   ['5', 0],
         vae:        ['3', 0],
         width,
         height,
         length:     frames,
         batch_size: 1,
+        // start_image intentionally omitted → T2V (zeros for image channels)
       },
     },
     // ── Sampling ──────────────────────────────────────────────────────────────
@@ -70,11 +75,11 @@ export function createWanT2VWorkflow(params: WanT2VParams): ComfyWorkflow {
       class_type: 'KSampler',
       inputs: {
         model:        ['1', 0],
-        positive:     ['4', 0],
-        negative:     ['5', 0],
-        latent_image: ['6', 0],
+        positive:     ['6', 0],   // conditioned positive from WanImageToVideo
+        negative:     ['6', 1],   // conditioned negative from WanImageToVideo
+        latent_image: ['6', 2],   // 48-channel latent from WanImageToVideo
         sampler_name: 'euler',
-        scheduler:    'linear',
+        scheduler:    'simple',
         steps,
         cfg,
         seed,
@@ -94,6 +99,7 @@ export function createWanT2VWorkflow(params: WanT2VParams): ComfyWorkflow {
         loop_count:      0,
         filename_prefix: 'wan_t2v',
         format:          'video/h264-mp4',
+        pingpong:        false,
         save_output:     true,
       },
     },
@@ -185,7 +191,7 @@ export function createWanI2VWorkflow(params: WanI2VParams): ComfyWorkflow {
         negative:     ['7', 1],   // image-conditioned negative from WanImageToVideo
         latent_image: ['7', 2],   // initial latent from WanImageToVideo
         sampler_name: 'euler',
-        scheduler:    'linear',
+        scheduler:    'simple',
         steps,
         cfg,
         seed,
@@ -205,6 +211,7 @@ export function createWanI2VWorkflow(params: WanI2VParams): ComfyWorkflow {
         loop_count:      0,
         filename_prefix: 'wan_i2v',
         format:          'video/h264-mp4',
+        pingpong:        false,
         save_output:     true,
       },
     },

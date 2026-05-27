@@ -26,6 +26,7 @@ import type { GeneratedAsset } from '@repo/shared/types'
 export default function LibraryPage() {
   const [typeFilter, setTypeFilter] = useState('all')
   const [providerFilter, setProviderFilter] = useState('all')
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
   const queryClient = useQueryClient()
   const { toast } = useToast()
 
@@ -39,12 +40,22 @@ export default function LibraryPage() {
     },
   })
 
-  const { mutate: deleteAsset } = useMutation({
-    mutationFn: (id: string) =>
-      fetch(`/api/library/${id}`, { method: 'DELETE' }),
+  const { mutate: deleteAsset, isPending: isDeleting } = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/library/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string }
+        throw new Error(body.error ?? `HTTP ${res.status}`)
+      }
+    },
     onSuccess: () => {
+      setDeleteTargetId(null)
       void queryClient.invalidateQueries({ queryKey: ['assets'] })
       toast({ title: 'Asset deletado' })
+    },
+    onError: (err) => {
+      setDeleteTargetId(null)
+      toast({ title: 'Erro ao deletar', description: err.message, variant: 'destructive' })
     },
   })
 
@@ -104,12 +115,37 @@ export default function LibraryPage() {
             <AssetCard
               key={asset.id}
               asset={asset}
-              onDelete={() => deleteAsset(asset.id)}
+              onDelete={() => setDeleteTargetId(asset.id)}
               onDownload={() => handleDownload(asset.id, asset.filename)}
             />
           ))}
         </div>
       )}
+
+      {/* Single controlled dialog — avoids asChild composition issues */}
+      <AlertDialog
+        open={deleteTargetId !== null}
+        onOpenChange={(open) => { if (!open) setDeleteTargetId(null) }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deletar asset?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O arquivo será removido permanentemente do GCS.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isDeleting}
+              onClick={() => deleteTargetId && deleteAsset(deleteTargetId)}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deletando…' : 'Deletar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
@@ -163,27 +199,15 @@ function AssetCard({
             <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onDownload}>
               <Download className="h-3 w-3" />
             </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive">
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Deletar asset?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Esta ação não pode ser desfeita. O arquivo será removido permanentemente do GCS.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={onDelete} className="bg-destructive hover:bg-destructive/90">
-                    Deletar
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 text-destructive hover:text-destructive"
+              onClick={onDelete}
+              aria-label="Deletar asset"
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
           </div>
         </div>
 
