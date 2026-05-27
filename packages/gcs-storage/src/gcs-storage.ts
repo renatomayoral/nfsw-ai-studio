@@ -138,6 +138,20 @@ export class GCSStorage {
     }
   }
 
+  /**
+   * Download a file from GCS and return its raw bytes + content-type.
+   * Uses server-side ADC — no signed URL needed.
+   * Throws if the file doesn't exist.
+   */
+  async downloadFile(gcsPath: string): Promise<{ buffer: Buffer; contentType: string }> {
+    const file = this.storage.bucket(this.bucketName).file(gcsPath)
+    const [[exists], [metadata]] = await Promise.all([file.exists(), file.getMetadata()])
+    if (!exists) throw new Error(`File not found: ${gcsPath}`)
+    const [buffer] = await file.download()
+    const contentType = (metadata as { contentType?: string }).contentType ?? 'application/octet-stream'
+    return { buffer: Buffer.from(buffer), contentType }
+  }
+
   async ensureBucket(): Promise<void> {
     const bucket = this.storage.bucket(this.bucketName)
     const [exists] = await bucket.exists()

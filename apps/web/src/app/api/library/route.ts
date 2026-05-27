@@ -36,22 +36,22 @@ export async function GET(req: NextRequest) {
   try {
     const assets = await withTimeout(storage.listAssets(filter), TIMEOUT_MS, [])
 
-    // Generate signed URLs for images (for thumbnails)
+    // Attach download URLs.
+    // Strategy: try signed URL first (works in production with a service account);
+    // fall back to the Next.js GCS proxy which works with ADC locally.
     const assetsWithUrls = await Promise.all(
       assets.map(async (asset) => {
-        if (asset.type === 'image') {
-          try {
-            const url = await withTimeout(
-              storage.getDownloadUrl(asset.gcsPath, 3600),
-              3000,
-              undefined as unknown as string,
-            )
-            return url ? { ...asset, downloadUrl: url } : asset
-          } catch {
-            return asset
-          }
+        const proxyUrl = `/api/storage/${asset.gcsPath}`
+        try {
+          const signedUrl = await withTimeout(
+            storage.getDownloadUrl(asset.gcsPath, 3600),
+            3000,
+            null as unknown as string,
+          )
+          return { ...asset, downloadUrl: signedUrl ?? proxyUrl }
+        } catch {
+          return { ...asset, downloadUrl: proxyUrl }
         }
-        return asset
       }),
     )
 

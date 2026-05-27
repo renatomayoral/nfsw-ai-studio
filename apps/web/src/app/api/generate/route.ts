@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { ComfyUIClient } from '@repo/comfyui-client'
 import { createFLUXWorkflow, createWanT2VWorkflow, createWanI2VWorkflow } from '@repo/comfyui-client/workflows'
 import { auth } from '@repo/auth'
+import { ensureTunnel } from '@/lib/comfyui-tunnel'
 import {
   checkAnonymousQuota,
   checkUserQuota,
@@ -22,6 +23,12 @@ const generateSchema = z.object({
   imageBase64: z.string().optional(),
   /** Set to true by free-tier users consuming their one-time welcome video */
   useWelcomeVideo: z.boolean().default(false),
+  /**
+   * Raw ComfyUI workflow JSON sent from the studio JSON editor.
+   * When present the server skips workflow building and submits this directly.
+   * `model` is still required for quota enforcement.
+   */
+  rawWorkflow: z.record(z.string(), z.unknown()).optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -109,29 +116,48 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── Build workflow ────────────────────────────────────────────────────────
-  if (data.model === 'wan-i2v' && !data.imageBase64) {
-    return NextResponse.json(
-      { error: 'imageBase64 é obrigatório para I2V' },
-      { status: 400 },
-    )
-  }
-
+  // ── Build workflow (or use raw JSON from editor) ──────────────────────────
   const client = new ComfyUIClient(
     process.env['COMFYUI_URL'] ?? 'http://localhost:8188',
   )
 
   let workflow
-  if (data.model === 'flux') {
-    workflow = createFLUXWorkflow(data)
-  } else if (data.model === 'wan-t2v') {
-    workflow = createWanT2VWorkflow({ ...data, frames: data.frames ?? 81 })
+  if (data.rawWorkflow) {
+    // Power-user path: JSON editor sent a hand-edited workflow directly
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    workflow = data.rawWorkflow as any
   } else {
-    workflow = createWanI2VWorkflow({
-      ...data,
-      frames: data.frames ?? 81,
-      imageBase64: data.imageBase64!,
-    })
+    if (data.model === 'wan-i2v' && !data.imageBase64) {
+      return NextResponse.json(
+        { error: 'imageBase64 é obrigatório para I2V' },
+        { status: 400 },
+      )
+    }
+
+    if (data.model === 'flux') {
+      workflow = createFLUXWorkflow(data)
+    } else if (data.model === 'wan-t2v') {
+      workflow = createWanT2VWorkflow({ ...data, frames: data.frames ?? 81 })
+    } else {
+      workflow = createWanI2VWorkflow({
+        ...data,
+        frames: data.frames ?? 81,
+        imageBase64: data.imageBase64!,
+      })
+    }
+  }
+
+  // ── Ensure tunnel is alive before submitting ─────────────────────────────
+  // This auto-reconnects if the SSH tunnel dropped (e.g. after a server hot-reload)
+  // without requiring the user to manually refresh the page.
+  try {
+    await ensureTunnel()
+  } catch (err) {
+    console.error('[generate] Tunnel not ready:', err)
+    return NextResponse.json(
+      { error: 'GPU não está acessível. O tunnel SSH está inativo — aguarde o Studio reconectar.' },
+      { status: 503 },
+    )
   }
 
   // ── Submit to ComfyUI ─────────────────────────────────────────────────────

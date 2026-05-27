@@ -96,15 +96,40 @@ export const useVmStore = create<VmStore>((set, get) => ({
       })
 
     // ── Health check while ready ────────────────────────────────────────────
+    // Checks both: (1) GCP VM status and (2) tunnel liveness.
+    // If the tunnel dies (e.g. Next.js hot-reload killed the SSH child),
+    // we re-establish it without requiring a full page refresh.
     const startHealthCheck = () => {
       const t = setInterval(async () => {
         try {
-          const data: { status: string } = await fetch('/api/vm/status').then((r) => r.json())
-          if (data.status === 'STOPPED' || data.status === 'UNKNOWN') {
+          // 1. Check GCP VM is still running
+          const vm: { status: string } = await fetch('/api/vm/status').then((r) => r.json())
+          if (vm.status === 'STOPPED' || vm.status === 'UNKNOWN') {
             clearInterval(t)
             set({ _healthTimer: null, phase: 'offline' })
+            return
           }
-        } catch { /* network hiccup */ }
+
+          // 2. Check tunnel is still alive
+          const tunnel: { state: string } = await fetch('/api/comfyui/tunnel').then((r) => r.json())
+          if (tunnel.state !== 'ready') {
+            // Tunnel died (e.g. server hot-reload) — re-establish silently
+            clearInterval(t)
+            set({ _healthTimer: null, phase: 'tunneling', _booting: true })
+            try {
+              const res = await fetch('/api/comfyui/tunnel', { method: 'POST' })
+              if (!res.ok) throw new Error('Tunnel failed')
+              set({ phase: 'ready', _booting: false })
+              startHealthCheck()
+            } catch (err) {
+              set({
+                phase:    'error',
+                error:    err instanceof Error ? err.message : 'Tunnel perdido',
+                _booting: false,
+              })
+            }
+          }
+        } catch { /* network hiccup — keep current phase */ }
       }, HEALTH_CHECK_MS)
       set({ _healthTimer: t })
     }

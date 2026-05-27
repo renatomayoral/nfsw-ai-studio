@@ -66,25 +66,33 @@ async function freeGpuMemory(): Promise<void> {
 }
 
 /**
- * Upload the file to GCS, delete it from the VM, and return a signed URL.
- * Falls back to the Next.js proxy URL if GCS upload fails.
+ * Upload the file to GCS, delete it from the VM, and return a URL.
+ *
+ * URL strategy (in priority order):
+ *  1. /api/storage/{gcsPath}  — Next.js GCS proxy, works with ADC + service accounts, no expiry
+ *  2. Signed URL              — direct GCS link (requires service account key; works on GCE)
+ *  3. /api/comfyui/view       — ComfyUI proxy fallback (only if GCS upload fails entirely)
+ *
+ * The ComfyUI file is deleted ONLY after GCS upload succeeds, so the
+ * fallback proxy always has a live file to serve.
  */
 async function uploadAndGetUrl(
   filename: string,
   outputType: 'image' | 'video',
   provider: string,
 ): Promise<string> {
-  const proxyFallback = `/api/comfyui/view?filename=${encodeURIComponent(filename)}&type=output`
+  const comfyFallback = `/api/comfyui/view?filename=${encodeURIComponent(filename)}&type=output`
 
   const file = await fetchOutputFile(filename)
   if (!file) {
-    console.warn(`[status] could not fetch ${filename} from ComfyUI — using proxy fallback`)
-    return proxyFallback
+    console.warn(`[status] could not fetch ${filename} from ComfyUI — using ComfyUI proxy fallback`)
+    return comfyFallback
   }
 
+  const storage = new GCSStorage()
+  const gcsPath = `${provider}/${filename}`
+
   try {
-    const storage = new GCSStorage()
-    const gcsPath = `${provider}/${filename}`
     console.log(`[status] uploading to GCS: gs://.../${gcsPath}`)
     await storage.uploadBuffer(file.buffer, gcsPath, file.contentType, {
       generatedAt: new Date().toISOString(),
@@ -92,13 +100,26 @@ async function uploadAndGetUrl(
       type: outputType,
     })
     console.log(`[status] GCS upload OK: ${gcsPath}`)
+
+    // Delete from ComfyUI now that GCS has the file
     await deleteFromComfyUI(filename)
-    const url = await storage.getDownloadUrl(gcsPath, 3600)
-    console.log(`[status] signed URL obtained`)
-    return url
+
+    // Try signed URL first (works in production with service account)
+    try {
+      const signedUrl = await storage.getDownloadUrl(gcsPath, 7200)
+      console.log(`[status] signed URL obtained`)
+      return signedUrl
+    } catch {
+      // ADC without service account key (local dev) — use the Next.js GCS proxy instead.
+      // This route streams the file from GCS using server-side credentials; no expiry.
+      const proxyUrl = `/api/storage/${gcsPath}`
+      console.log(`[status] signed URL unavailable (ADC), using GCS proxy: ${proxyUrl}`)
+      return proxyUrl
+    }
   } catch (err) {
     console.error(`[status] GCS upload failed for ${filename}:`, err)
-    return proxyFallback
+    // File is still on ComfyUI (we didn't delete before upload)
+    return comfyFallback
   }
 }
 
