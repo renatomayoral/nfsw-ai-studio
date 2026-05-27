@@ -18,13 +18,17 @@ if command -v nvidia-smi &>/dev/null; then
 fi
 
 # Set ComfyUI flags based on VRAM
-# Note: --fp8_e4m3fn-unet is the specific flag (--fp8_e4m3fn is ambiguous in newer ComfyUI)
+# --dont-upcast-attention: prevents fp8→fp32 upcasting in attention ops (saves ~30% VRAM at inference)
+# ≥70GB (A100-80GB): keep everything on GPU in bf16
+# 38-70GB (A100-40GB, etc.): highvram mode + fp8 UNet; do NOT use --gpu-only which prevents
+#   ComfyUI from offloading intermediate buffers and causes OOM on large resolutions
+# <38GB (T4, etc.): fp8 + lowvram offloading
 if [ "${VRAM_GB}" -ge 70 ]; then
-    COMFYUI_FLAGS="--gpu-only --bf16-unet"
+    COMFYUI_FLAGS="--gpu-only --bf16-unet --dont-upcast-attention"
 elif [ "${VRAM_GB}" -ge 38 ]; then
-    COMFYUI_FLAGS="--gpu-only --fp8_e4m3fn-unet"
+    COMFYUI_FLAGS="--highvram --fp8_e4m3fn-unet --dont-upcast-attention"
 else
-    COMFYUI_FLAGS="--gpu-only --fp8_e4m3fn-unet --lowvram"
+    COMFYUI_FLAGS="--fp8_e4m3fn-unet --lowvram --dont-upcast-attention"
 fi
 
 echo "ComfyUI flags: ${COMFYUI_FLAGS}"

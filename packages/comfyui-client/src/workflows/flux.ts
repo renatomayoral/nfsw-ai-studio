@@ -16,8 +16,8 @@ import type { ComfyWorkflow, FLUXParams } from '@repo/shared/types'
 export function createFLUXWorkflow(params: FLUXParams): ComfyWorkflow {
   const {
     prompt,
-    width = 1024,
-    height = 1024,
+    width = 832,
+    height = 1216,
     steps = 20,
     cfg = 3.5,
     seed = Math.floor(Math.random() * 2 ** 32),
