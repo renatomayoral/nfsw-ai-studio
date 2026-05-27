@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -16,107 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@repo/ui/compo
 import { Badge } from '@repo/ui/components/badge'
 import { useToast } from '@repo/ui/hooks/use-toast'
 import { Wand2, Loader2, Power, AlertCircle, WifiOff, CheckCircle2 } from 'lucide-react'
-
-// ── VM lifecycle ────────────────────────────────────────────────────────────
-
-type VmPhase = 'checking' | 'starting' | 'tunneling' | 'ready' | 'offline' | 'error'
-
-const POLL_MS         = 5_000
-const HEALTH_CHECK_MS = 30_000
-
-function useVmLifecycle() {
-  const [phase, setPhase]     = useState<VmPhase>('checking')
-  const [error, setError]     = useState<string | null>(null)
-  const [elapsed, setElapsed] = useState(0)
-  const pollRef   = useRef<ReturnType<typeof setInterval> | null>(null)
-  const tickRef   = useRef<ReturnType<typeof setInterval> | null>(null)
-  const healthRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  const startTick = () => {
-    setElapsed(0)
-    tickRef.current = setInterval(() => setElapsed((e) => e + 1), 1_000)
-  }
-  const stopTick = () => {
-    if (tickRef.current) clearInterval(tickRef.current)
-  }
-
-  const waitForStatus = (target: string) =>
-    new Promise<void>((resolve, reject) => {
-      pollRef.current = setInterval(async () => {
-        try {
-          const data = await fetch('/api/vm/status').then((r) => r.json())
-          if (data.status === target) {
-            clearInterval(pollRef.current!)
-            resolve()
-          }
-        } catch { /* keep polling */ }
-      }, POLL_MS)
-      setTimeout(() => {
-        clearInterval(pollRef.current!)
-        reject(new Error('VM demorou mais de 10 min para iniciar'))
-      }, 10 * 60 * 1_000)
-    })
-
-  const startHealthCheck = useCallback(() => {
-    healthRef.current = setInterval(async () => {
-      try {
-        const data = await fetch('/api/vm/status').then((r) => r.json())
-        if (data.status === 'STOPPED' || data.status === 'UNKNOWN') {
-          clearInterval(healthRef.current!)
-          setPhase('offline')
-        }
-      } catch { /* network hiccup */ }
-    }, HEALTH_CHECK_MS)
-  }, [])
-
-  const boot = useCallback(async () => {
-    setError(null)
-    if (pollRef.current)  clearInterval(pollRef.current)
-    if (healthRef.current) clearInterval(healthRef.current)
-
-    try {
-      setPhase('checking')
-      const { status } = await fetch('/api/vm/status').then((r) => r.json())
-
-      if (status !== 'RUNNING') {
-        setPhase('starting')
-        startTick()
-        await fetch('/api/vm/start', { method: 'POST' })
-        await waitForStatus('RUNNING')
-        stopTick()
-      }
-
-      setPhase('tunneling')
-      startTick()
-      const tunnelRes = await fetch('/api/comfyui/tunnel', { method: 'POST' })
-      if (!tunnelRes.ok) {
-        const d = await tunnelRes.json()
-        throw new Error(d.error ?? 'Tunnel failed')
-      }
-      stopTick()
-
-      setPhase('ready')
-      startHealthCheck()
-    } catch (err) {
-      stopTick()
-      setError(err instanceof Error ? err.message : 'Erro desconhecido')
-      setPhase('error')
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startHealthCheck])
-
-  useEffect(() => {
-    boot()
-    return () => {
-      if (pollRef.current)   clearInterval(pollRef.current)
-      if (healthRef.current) clearInterval(healthRef.current)
-      stopTick()
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  return { phase, error, elapsed, boot }
-}
+import { useVmStore, type VmPhase } from '@/lib/vm-store'
 
 // ── Generate form schema ────────────────────────────────────────────────────
 
@@ -143,11 +43,21 @@ type JobStatus = {
 // ── Page ────────────────────────────────────────────────────────────────────
 
 export default function StudioPage() {
-  const { phase, error, elapsed, boot } = useVmLifecycle()
-  const [activeTab, setActiveTab]       = useState('flux')
-  const [genProgress, setGenProgress]   = useState(0)
-  const [previewUrl, setPreviewUrl]     = useState<string | null>(null)
-  const [previewType, setPreviewType]   = useState<'image' | 'video'>('image')
+  // VM state lives in Zustand — survives client-side navigation
+  const { phase, error, elapsed, boot } = useVmStore()
+
+  // Boot once on first mount if not already ready/booting
+  useEffect(() => {
+    if (phase === 'idle' || phase === 'offline' || phase === 'error') {
+      void boot()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const [activeTab, setActiveTab]     = useState('flux')
+  const [genProgress, setGenProgress] = useState(0)
+  const [previewUrl, setPreviewUrl]   = useState<string | null>(null)
+  const [previewType, setPreviewType] = useState<'image' | 'video'>('image')
   const { toast } = useToast()
 
   const form = useForm<GenerateForm>({
@@ -206,7 +116,7 @@ export default function StudioPage() {
     <div className="max-w-3xl mx-auto space-y-4">
 
       {/* ── VM status banner ── */}
-      <VmBanner phase={phase} error={error} elapsed={elapsed} onRetry={boot} />
+      <VmBanner phase={phase} error={error} elapsed={elapsed} onRetry={() => void boot()} />
 
       <h1 className="text-2xl font-bold">Studio</h1>
 
@@ -344,6 +254,8 @@ function VmBanner({
       </div>
     )
   }
+
+  if (phase === 'idle') return null
 
   const label =
     phase === 'checking'  ? 'Verificando VM…' :

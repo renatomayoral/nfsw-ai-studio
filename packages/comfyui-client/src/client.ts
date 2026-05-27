@@ -12,8 +12,19 @@ import { COMFYUI_DEFAULTS } from '@repo/shared/constants'
 type ProgressCallback = (update: ProgressUpdate) => void
 
 type ComfyPromptResponse = { prompt_id: string; number: number }
+type ComfyExecutionError = {
+  node_id: string
+  exception_message: string
+  exception_type: string
+  traceback?: string[]
+}
+
 type ComfyHistoryEntry = {
-  status: { status_str: string; completed: boolean }
+  status: {
+    status_str: string
+    completed: boolean
+    messages?: [string, ComfyExecutionError | unknown][]
+  }
   outputs: Record<
     string,
     { images?: OutputFile[]; gifs?: OutputFile[] }
@@ -85,7 +96,17 @@ export class ComfyUIClient {
         ? 'failed'
         : 'running'
 
-    return { promptId, status, images, videos }
+    // Extract execution error details for logging
+    let error: string | undefined
+    if (status === 'failed' && entry.status.messages) {
+      const errMsg = entry.status.messages.find(([type]) => type === 'execution_error')
+      if (errMsg) {
+        const detail = errMsg[1] as ComfyExecutionError
+        error = `[node ${detail.node_id}] ${detail.exception_type}: ${detail.exception_message}`
+      }
+    }
+
+    return { promptId, status, images, videos, error }
   }
 
   subscribeToProgress(

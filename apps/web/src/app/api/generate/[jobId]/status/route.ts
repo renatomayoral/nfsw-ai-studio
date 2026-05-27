@@ -7,15 +7,21 @@ const COMFYUI_BASE = 'http://127.0.0.1:8188'
 /** Fetch raw bytes from ComfyUI output via the tunnel */
 async function fetchOutputFile(filename: string): Promise<{ buffer: Buffer; contentType: string } | null> {
   try {
-    const res = await fetch(
-      `${COMFYUI_BASE}/view?filename=${encodeURIComponent(filename)}&type=output`,
-      { headers: { origin: COMFYUI_BASE, referer: `${COMFYUI_BASE}/` } },
-    )
-    if (!res.ok) return null
+    const url = `${COMFYUI_BASE}/view?filename=${encodeURIComponent(filename)}&type=output`
+    console.log(`[status] fetching output file: ${url}`)
+    const res = await fetch(url, {
+      headers: { origin: COMFYUI_BASE, referer: `${COMFYUI_BASE}/` },
+    })
+    if (!res.ok) {
+      console.error(`[status] fetchOutputFile failed: HTTP ${res.status} for ${filename}`)
+      return null
+    }
     const buffer = Buffer.from(await res.arrayBuffer())
     const contentType = res.headers.get('content-type') ?? 'application/octet-stream'
+    console.log(`[status] fetched ${filename}: ${buffer.length} bytes, type=${contentType}`)
     return { buffer, contentType }
-  } catch {
+  } catch (err) {
+    console.error(`[status] fetchOutputFile error for ${filename}:`, err)
     return null
   }
 }
@@ -30,11 +36,32 @@ async function deleteFromComfyUI(filename: string): Promise<void> {
         origin: COMFYUI_BASE,
         referer: `${COMFYUI_BASE}/`,
       },
-      // ComfyUI v1.3+ accepts a list of output filenames to purge
       body: JSON.stringify({ unload_models: false, free_memory: false, output_files: [filename] }),
     })
   } catch {
-    // Non-critical — file will remain on disk but GCS copy is the source of truth
+    // Non-critical — GCS is the source of truth
+  }
+}
+
+/**
+ * Free GPU activation memory after a generation (completed or failed).
+ * Does NOT unload models — they stay in VRAM for the next run.
+ * Prevents VRAM accumulation from intermediate tensors across multiple runs.
+ */
+async function freeGpuMemory(): Promise<void> {
+  try {
+    await fetch(`${COMFYUI_BASE}/api/free`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        origin: COMFYUI_BASE,
+        referer: `${COMFYUI_BASE}/`,
+      },
+      body: JSON.stringify({ unload_models: false, free_memory: true }),
+    })
+    console.log('[status] GPU memory freed')
+  } catch {
+    // Non-critical
   }
 }
 
@@ -50,21 +77,27 @@ async function uploadAndGetUrl(
   const proxyFallback = `/api/comfyui/view?filename=${encodeURIComponent(filename)}&type=output`
 
   const file = await fetchOutputFile(filename)
-  if (!file) return proxyFallback
+  if (!file) {
+    console.warn(`[status] could not fetch ${filename} from ComfyUI — using proxy fallback`)
+    return proxyFallback
+  }
 
   try {
     const storage = new GCSStorage()
     const gcsPath = `${provider}/${filename}`
+    console.log(`[status] uploading to GCS: gs://.../${gcsPath}`)
     await storage.uploadBuffer(file.buffer, gcsPath, file.contentType, {
       generatedAt: new Date().toISOString(),
       provider,
       type: outputType,
     })
-    // Remove from VM after confirmed GCS upload
+    console.log(`[status] GCS upload OK: ${gcsPath}`)
     await deleteFromComfyUI(filename)
-    return await storage.getDownloadUrl(gcsPath, 3600)
+    const url = await storage.getDownloadUrl(gcsPath, 3600)
+    console.log(`[status] signed URL obtained`)
+    return url
   } catch (err) {
-    console.error('[generate/status] GCS upload failed, using proxy URL:', err)
+    console.error(`[status] GCS upload failed for ${filename}:`, err)
     return proxyFallback
   }
 }
@@ -74,8 +107,11 @@ export async function GET(
   { params }: { params: Promise<{ jobId: string }> },
 ) {
   const { jobId } = await params
-  const client    = new ComfyUIClient(process.env['COMFYUI_URL'] ?? COMFYUI_BASE)
+  const comfyUrl  = process.env['COMFYUI_URL'] ?? COMFYUI_BASE
+  const client    = new ComfyUIClient(comfyUrl)
   const provider  = process.env['CLOUD_PROVIDER'] ?? 'gcp'
+
+  console.log(`[status] polling job ${jobId} via ${comfyUrl}`)
 
   const encoder = new TextEncoder()
 
@@ -88,11 +124,22 @@ export async function GET(
       const maxAttempts = 300  // 5 min at 1s intervals
 
       while (attempts < maxAttempts) {
-        const output = await client.getJobOutput(jobId)
+        let output
+        try {
+          output = await client.getJobOutput(jobId)
+        } catch (err) {
+          console.error(`[status] getJobOutput error (attempt ${attempts}):`, err)
+          send({ status: 'failed', percentage: 0, error: 'ComfyUI unreachable' })
+          break
+        }
+
+        console.log(`[status] attempt ${attempts}: status=${output.status}, images=${output.images?.length ?? 0}, videos=${output.videos?.length ?? 0}`)
 
         if (output.status === 'completed') {
           const firstVideo = output.videos?.[0]
           const firstImage = output.images?.[0]
+
+          console.log(`[status] completed — firstImage=${firstImage?.filename}, firstVideo=${firstVideo?.filename}`)
 
           let outputUrl:  string | undefined
           let outputType: 'image' | 'video' = 'image'
@@ -102,14 +149,19 @@ export async function GET(
             outputUrl  = await uploadAndGetUrl(firstVideo.filename, 'video', provider)
           } else if (firstImage) {
             outputUrl  = await uploadAndGetUrl(firstImage.filename, 'image', provider)
+          } else {
+            console.warn(`[status] job completed but no output files found`)
           }
 
           send({ status: 'completed', percentage: 100, outputUrl, outputType })
+          await freeGpuMemory()
           break
         }
 
         if (output.status === 'failed') {
+          console.error(`[status] job failed: ${output.error ?? 'no reason'}`)
           send({ status: 'failed', percentage: 0 })
+          await freeGpuMemory()
           break
         }
 
