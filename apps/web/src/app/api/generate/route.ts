@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ComfyUIClient } from '@repo/comfyui-client'
-import { createFLUXWorkflow, createWanT2VWorkflow, createWanI2VWorkflow } from '@repo/comfyui-client/workflows'
+import { createFLUXWorkflow, createFLUXImg2ImgWorkflow, createWanT2VWorkflow, createWanI2VWorkflow } from '@repo/comfyui-client/workflows'
 import { auth } from '@repo/auth'
 import { ensureTunnel } from '@/lib/comfyui-tunnel'
 import {
@@ -11,7 +11,7 @@ import {
 } from '@/lib/quota'
 
 const generateSchema = z.object({
-  model: z.enum(['flux', 'wan-t2v', 'wan-i2v']),
+  model: z.enum(['flux', 'flux-i2i', 'wan-t2v', 'wan-i2v']),
   prompt: z.string().min(1).max(2000),
   negativePrompt: z.string().max(1000).optional(),
   width: z.number().min(256).max(2048).default(1024),
@@ -21,6 +21,7 @@ const generateSchema = z.object({
   seed: z.number().default(() => Math.floor(Math.random() * 2 ** 32))
     .transform((v) => (Number.isFinite(v) && v >= 0 ? Math.floor(v) : Math.floor(Math.random() * 2 ** 32))),
   frames: z.number().min(16).max(200).optional(),
+  denoise: z.number().min(0).max(1).default(0.75),
   imageBase64: z.string().optional(),
   /** Set to true by free-tier users consuming their one-time welcome video */
   useWelcomeVideo: z.boolean().default(false),
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
   }
 
   const data = parsed.data
-  const generationType = data.model === 'flux' ? 'image' : 'video'
+  const generationType = (data.model === 'flux' || data.model === 'flux-i2i') ? 'image' : 'video'
 
   // ── Resolve session ───────────────────────────────────────────────────────
   const session = await auth.api.getSession({ headers: req.headers })
@@ -149,6 +150,11 @@ export async function POST(req: NextRequest) {
 
     if (data.model === 'flux') {
       workflow = createFLUXWorkflow(data)
+    } else if (data.model === 'flux-i2i') {
+      if (!data.imageBase64) {
+        return NextResponse.json({ error: 'imageBase64 é obrigatório para FLUX I2I' }, { status: 400 })
+      }
+      workflow = createFLUXImg2ImgWorkflow({ ...data, imageBase64: data.imageBase64 })
     } else if (data.model === 'wan-t2v') {
       workflow = createWanT2VWorkflow({ ...data, frames: data.frames ?? 81 })
     } else {

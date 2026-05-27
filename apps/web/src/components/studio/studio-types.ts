@@ -11,6 +11,8 @@ export const generateSchema = z.object({
   cfg:            z.number().min(1).max(30),
   seed:           z.number().min(0),
   frames:         z.number().min(16).max(200).optional(),
+  denoise:        z.number().min(0).max(1).optional(),
+  imageBase64:    z.string().optional(),
 })
 
 export type GenerateForm = z.infer<typeof generateSchema>

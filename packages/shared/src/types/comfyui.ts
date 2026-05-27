@@ -44,6 +44,12 @@ export type FLUXParams = {
   seed: number
 }
 
+export type FLUXImg2ImgParams = FLUXParams & {
+  imageBase64: string
+  /** 0.0 = keep original, 1.0 = ignore original. Typical: 0.5–0.85 */
+  denoise: number
+}
+
 export type WanT2VParams = {
   prompt: string
   negativePrompt?: string
