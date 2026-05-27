@@ -1,11 +1,11 @@
 'use client'
 
-import { useId } from 'react'
+import { useId, useRef, useCallback } from 'react'
 import { Label } from '@repo/ui/components/label'
 import { Textarea } from '@repo/ui/components/textarea'
 import { Slider } from '@repo/ui/components/slider'
 import { Button } from '@repo/ui/components/button'
-import { ChevronDown, Shuffle } from 'lucide-react'
+import { ChevronDown, Shuffle, Upload, X } from 'lucide-react'
 import { cn } from '@repo/ui/lib/utils'
 import { IMAGE_PRESETS, VIDEO_PRESETS, FRAME_PRESETS } from './studio-types'
 import { useStudio } from './studio-context'
@@ -46,6 +46,99 @@ function SliderField({
   )
 }
 
+// ── Image upload zone ─────────────────────────────────────────────────────────
+
+function ImageUploadZone() {
+  const { state: { values }, actions: { } } = useStudio()
+  const { state, actions } = useStudio()
+  const { form } = state
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const imageBase64 = values.imageBase64
+
+  const loadFile = useCallback((file: File) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const result = e.target?.result as string
+      // Strip the data:image/...;base64, prefix — ComfyUI expects raw base64
+      const base64 = result.split(',')[1] ?? ''
+      form.setValue('imageBase64', base64)
+    }
+    reader.readAsDataURL(file)
+  }, [form])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files[0]
+    if (file && file.type.startsWith('image/')) loadFile(file)
+  }, [loadFile])
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) loadFile(file)
+  }, [loadFile])
+
+  const clear = useCallback(() => {
+    form.setValue('imageBase64', '')
+    if (inputRef.current) inputRef.current.value = ''
+  }, [form])
+
+  if (imageBase64) {
+    return (
+      <div className="relative rounded-lg overflow-hidden border border-white/10 bg-neutral-950">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={`data:image/png;base64,${imageBase64}`}
+          alt="Imagem de entrada"
+          className="w-full max-h-48 object-contain"
+        />
+        <Button
+          type="button"
+          size="icon"
+          variant="secondary"
+          className="absolute top-2 right-2 h-7 w-7"
+          onClick={clear}
+          aria-label="Remover imagem"
+        >
+          <X className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label="Clique ou arraste uma imagem aqui"
+      className={cn(
+        'flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-white/10',
+        'bg-neutral-950 py-8 text-center cursor-pointer transition-colors',
+        'hover:border-violet-500/50 hover:bg-violet-500/5',
+        'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-violet-500',
+      )}
+      onClick={() => inputRef.current?.click()}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click() }}
+      onDrop={handleDrop}
+      onDragOver={(e) => e.preventDefault()}
+    >
+      <Upload className="h-6 w-6 text-neutral-500" aria-hidden="true" />
+      <div>
+        <p className="text-sm text-neutral-400">Clique ou arraste uma imagem</p>
+        <p className="text-xs text-neutral-600 mt-0.5">PNG, JPG, WEBP</p>
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        className="sr-only"
+        onChange={handleChange}
+        aria-hidden="true"
+      />
+    </div>
+  )
+}
+
 // ── Controls panel ────────────────────────────────────────────────────────────
 
 /**
@@ -53,7 +146,7 @@ function SliderField({
  * Reads form state and actions from StudioContext — no props needed.
  */
 export function ControlsPanel() {
-  const { state: { form, isVideo, advancedOpen, values }, actions: { setAdvancedOpen } } = useStudio()
+  const { state: { form, isVideo, isI2I, advancedOpen, values }, actions: { setAdvancedOpen } } = useStudio()
   const { register, setValue, formState: { errors } } = form
 
   const promptId    = useId()
@@ -65,6 +158,18 @@ export function ControlsPanel() {
 
   return (
     <div className="space-y-4">
+
+      {/* Image upload (i2i tabs only) */}
+      {isI2I && (
+        <div className="space-y-1.5">
+          <Label className="text-sm font-medium">Imagem de entrada</Label>
+          <ImageUploadZone />
+          {isI2I && !values.imageBase64 && (
+            <p className="text-xs text-amber-400">⚠ Faça upload de uma imagem para gerar</p>
+          )}
+        </div>
+      )}
+
       {/* Prompt */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
@@ -75,7 +180,7 @@ export function ControlsPanel() {
         </div>
         <Textarea
           id={promptId}
-          placeholder="Descreva o que deseja gerar…"
+          placeholder={isI2I ? 'Descreva as alterações desejadas…' : 'Descreva o que deseja gerar…'}
           rows={4}
           autoFocus
           className="resize-none text-sm"
@@ -87,23 +192,25 @@ export function ControlsPanel() {
         )}
       </div>
 
-      {/* Negative prompt */}
-      <details className="group">
-        <summary className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-300 cursor-pointer list-none select-none transition-colors">
-          <ChevronDown className="h-3 w-3 transition-transform group-open:rotate-180" aria-hidden="true" />
-          Prompt Negativo
-        </summary>
-        <div className="mt-2">
-          <Textarea
-            id={negPromptId}
-            placeholder="O que evitar na geração…"
-            rows={2}
-            className="resize-none text-sm"
-            autoComplete="off"
-            {...register('negativePrompt')}
-          />
-        </div>
-      </details>
+      {/* Negative prompt (not shown for flux/flux-i2i since FLUX ignores it) */}
+      {isVideo && (
+        <details className="group">
+          <summary className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-300 cursor-pointer list-none select-none transition-colors">
+            <ChevronDown className="h-3 w-3 transition-transform group-open:rotate-180" aria-hidden="true" />
+            Prompt Negativo
+          </summary>
+          <div className="mt-2">
+            <Textarea
+              id={negPromptId}
+              placeholder="O que evitar na geração…"
+              rows={2}
+              className="resize-none text-sm"
+              autoComplete="off"
+              {...register('negativePrompt')}
+            />
+          </div>
+        </details>
+      )}
 
       {/* Resolution presets */}
       <div className="space-y-2">
@@ -160,6 +267,17 @@ export function ControlsPanel() {
             })}
           </div>
         </div>
+      )}
+
+      {/* Denoise strength (i2i tabs only) */}
+      {isI2I && (
+        <SliderField
+          label={`Intensidade: ${((values.denoise ?? 0.75) * 100).toFixed(0)}%`}
+          hint="Mais alto = mais criativo, menos alto = mais fiel à original"
+          min={0.1} max={1.0} step={0.05}
+          value={values.denoise ?? 0.75}
+          onChange={(v) => setValue('denoise', v)}
+        />
       )}
 
       {/* Advanced settings */}

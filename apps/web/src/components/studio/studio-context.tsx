@@ -7,7 +7,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useToast } from '@repo/ui/hooks/use-toast'
 import { useVmStore } from '@/lib/vm-store'
-import { createFLUXWorkflow, createWanT2VWorkflow, createWanI2VWorkflow } from '@repo/comfyui-client/workflows'
+import { createFLUXWorkflow, createFLUXImg2ImgWorkflow, createWanT2VWorkflow, createWanI2VWorkflow } from '@repo/comfyui-client/workflows'
 import { generateSchema, type GenerateForm, type JobStatus } from './studio-types'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -52,6 +52,22 @@ function extractFormValues(tab: string, wf: ComfyWf): Partial<GenerateForm> {
     }
   }
 
+  if (tab === 'flux-i2i') {
+    // node '7' = CLIPTextEncode (prompt)
+    // node '8' = FluxGuidance   (cfg via guidance)
+    // node '5' = ImageScale     (width, height)
+    // node '10' = KSampler      (steps, seed, denoise)
+    return {
+      prompt:  str(wf['7']?.inputs?.text),
+      cfg:     num(wf['8']?.inputs?.guidance),
+      width:   num(wf['5']?.inputs?.width),
+      height:  num(wf['5']?.inputs?.height),
+      steps:   num(wf['10']?.inputs?.steps),
+      seed:    num(wf['10']?.inputs?.seed),
+      denoise: num(wf['10']?.inputs?.denoise),
+    }
+  }
+
   if (tab === 'wan-i2v') {
     // node '5' = CLIPTextEncode positive
     // node '6' = CLIPTextEncode negative
@@ -78,10 +94,12 @@ function buildWorkflowJson(modelTab: string, values: GenerateForm): string {
     let wf
     if (modelTab === 'flux') {
       wf = createFLUXWorkflow(values)
+    } else if (modelTab === 'flux-i2i') {
+      wf = createFLUXImg2ImgWorkflow({ ...values, imageBase64: values.imageBase64 ?? '', denoise: values.denoise ?? 0.75 })
     } else if (modelTab === 'wan-t2v') {
       wf = createWanT2VWorkflow({ ...values, frames: values.frames ?? 49 })
     } else {
-      wf = createWanI2VWorkflow({ ...values, frames: values.frames ?? 49, imageBase64: '' })
+      wf = createWanI2VWorkflow({ ...values, frames: values.frames ?? 49, imageBase64: values.imageBase64 ?? '' })
     }
     return JSON.stringify(wf, null, 2)
   } catch {
@@ -94,6 +112,7 @@ function buildWorkflowJson(modelTab: string, values: GenerateForm): string {
 type StudioState = {
   activeTab:    string
   isVideo:      boolean
+  isI2I:        boolean   // true for flux-i2i and wan-i2v
   isGenerating: boolean
   genProgress:  number
   resultUrl:    string | null
@@ -145,11 +164,11 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Tab state via URL so links/back-button work
-  // Valid tabs: flux | wan-t2v | wan-i2v (no separate 'json' tab anymore)
+  // Valid tabs: flux | flux-i2i | wan-t2v | wan-i2v (no separate 'json' tab anymore)
   const rawTab   = searchParams.get('tab') ?? 'flux'
-  const activeTab = ['flux', 'wan-t2v', 'wan-i2v'].includes(rawTab) ? rawTab : 'flux'
+  const activeTab = ['flux', 'flux-i2i', 'wan-t2v', 'wan-i2v'].includes(rawTab) ? rawTab : 'flux'
   const isVideo   = activeTab === 'wan-t2v' || activeTab === 'wan-i2v'
+  const isI2I     = activeTab === 'flux-i2i' || activeTab === 'wan-i2v'
 
   // Per-tab JSON overrides: null = not edited, string = user's edited version
   const [rawJsonOverrides, setRawJsonOverrides] = useState<Record<string, string | null>>({})
@@ -183,21 +202,27 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
       cfg:            3.5,
       seed:           Math.floor(Math.random() * 2 ** 32),
       frames:         49,
+      denoise:        0.75,
+      imageBase64:    '',
     },
   })
 
   const values  = form.watch()
   const vmReady = phase === 'ready'
 
-  // When switching tabs: reset resolution defaults
+  // When switching tabs: reset resolution + mode-specific defaults
   useEffect(() => {
-    if (activeTab === 'flux') {
+    if (activeTab === 'flux' || activeTab === 'flux-i2i') {
       form.setValue('width',  832)
       form.setValue('height', 1216)
     } else {
       form.setValue('width',  832)
       form.setValue('height', 480)
       form.setValue('frames', 49)
+    }
+    // Clear uploaded image when leaving an i2i tab
+    if (activeTab !== 'flux-i2i' && activeTab !== 'wan-i2v') {
+      form.setValue('imageBase64', '')
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab])
@@ -322,6 +347,7 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
       state: {
         activeTab,
         isVideo,
+        isI2I,
         isGenerating,
         genProgress,
         resultUrl,

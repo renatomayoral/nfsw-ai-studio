@@ -14,9 +14,10 @@ import { JsonPanel }     from '@/components/studio/json-panel'
 // ── Tab metadata ──────────────────────────────────────────────────────────────
 
 const TAB_META: Record<string, { label: string; sub: string }> = {
-  'flux':    { label: 'FLUX.2',  sub: 'Imagem' },
-  'wan-t2v': { label: 'Wan 2.2', sub: 'Vídeo T2V' },
-  'wan-i2v': { label: 'Wan 2.2', sub: 'Animar I2V' },
+  'flux':     { label: 'FLUX.2',  sub: 'Imagem' },
+  'flux-i2i': { label: 'FLUX.2',  sub: 'Imagem p/ Imagem' },
+  'wan-t2v':  { label: 'Wan 2.2', sub: 'Vídeo T2V' },
+  'wan-i2v':  { label: 'Wan 2.2', sub: 'Animar I2V' },
 }
 
 // ── Collapsible JSON section (one per tab) ────────────────────────────────────
@@ -102,10 +103,14 @@ function StudioLayout() {
         {/* Right: controls */}
         <div className="flex flex-col gap-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3 h-9">
+            <TabsList className="grid w-full grid-cols-4 h-9">
               <TabsTrigger value="flux" className="gap-1.5 text-xs">
                 <ImageIcon className="h-3.5 w-3.5" aria-hidden="true" />
                 Imagem
+              </TabsTrigger>
+              <TabsTrigger value="flux-i2i" className="gap-1.5 text-xs">
+                <ImageIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                I2I
               </TabsTrigger>
               <TabsTrigger value="wan-t2v" className="gap-1.5 text-xs">
                 <VideoIcon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -122,6 +127,10 @@ function StudioLayout() {
               className="space-y-4 mt-4"
             >
               <TabsContent value="flux" className="mt-0 space-y-4">
+                <ControlsPanel />
+                <JsonSection />
+              </TabsContent>
+              <TabsContent value="flux-i2i" className="mt-0 space-y-4">
                 <ControlsPanel />
                 <JsonSection />
               </TabsContent>
