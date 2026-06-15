@@ -34,15 +34,23 @@ export default function CreatorsPage() {
 
   const { data: creators, isLoading } = useQuery<CreatorListRow[]>({
     queryKey: ['creators'],
-    queryFn: () => fetch('/api/creators').then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch('/api/creators')
+      if (!r.ok) throw new Error('Failed to fetch creators')
+      return r.json()
+    },
   })
 
   // default selection = first creator
-  const activeId = selectedId ?? creators?.[0]?.id ?? null
+  const activeId = selectedId ?? (Array.isArray(creators) ? creators[0]?.id : null)
 
   const { data: detail } = useQuery<CreatorDetail>({
     queryKey: ['creator', activeId],
-    queryFn: () => fetch(`/api/creators/${activeId}`).then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch(`/api/creators/${activeId}`)
+      if (!r.ok) throw new Error('Failed to fetch detail')
+      return r.json()
+    },
     enabled: !!activeId,
   })
 
@@ -83,7 +91,7 @@ export default function CreatorsPage() {
       </div>
 
       {/* stats */}
-      <Stats creators={creators ?? []} />
+      <Stats creators={Array.isArray(creators) ? creators : []} />
 
       {/* creators table */}
       <div className="rounded-2xl border bg-card">
@@ -103,7 +111,7 @@ export default function CreatorsPage() {
               <div key={i} className="h-[70px] animate-pulse bg-muted/40" />
             ))}
           </div>
-        ) : !creators?.length ? (
+        ) : !Array.isArray(creators) || creators.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
             <Users className="h-10 w-10 opacity-30" />
             <p className="text-sm">Nenhuma criadora ainda. Crie a primeira página.</p>
