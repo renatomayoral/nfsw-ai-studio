@@ -11,7 +11,7 @@ export const revalidate = 60 // ISR: regenerate the page at most once a minute
 
 async function getCreator(slug: string) {
   const c = await db.query.creator.findFirst({ where: eq(creator.slug, slug) })
-  if (!c || c.status !== 'live') return null
+  if (!c) return null
   const links = await db.query.creatorLink.findMany({
     where: eq(creatorLink.creatorId, c.id),
     orderBy: (l, { asc }) => [asc(l.sortOrder)],

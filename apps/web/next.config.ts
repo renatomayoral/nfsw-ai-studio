@@ -8,9 +8,6 @@ const nextConfig: NextConfig = {
     '@repo/auth',
     '@repo/db',
     '@repo/payments',
-    '@repo/cloud-infra',
-    '@repo/comfyui-client',
-    '@repo/gcs-storage',
   ],
   images: {
     remotePatterns: [

@@ -14,7 +14,7 @@ import {
 import { Button } from '@repo/ui/components/button'
 import { Input } from '@repo/ui/components/input'
 import { useToast } from '@repo/ui/hooks/use-toast'
-import { Plus, Copy, ChevronRight, Users, MousePointerClick, ExternalLink, Settings2 } from 'lucide-react'
+import { Plus, Copy, ChevronRight, Users, MousePointerClick, ExternalLink, Settings2, Camera, X } from 'lucide-react'
 import {
   slugify,
   type CreatorListRow,
@@ -31,6 +31,9 @@ export default function CreatorsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [newName, setNewName] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
 
   const { data: platforms = [] } = useQuery<Platform[]>({
     queryKey: ['platforms'],
@@ -51,19 +54,46 @@ export default function CreatorsPage() {
     enabled: !!activeId,
   })
 
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setAvatarPreview(URL.createObjectURL(file))
+    setUploadingAvatar(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/upload/avatar', { method: 'POST', body: fd })
+      if (!res.ok) throw new Error('Falha no upload')
+      const { url } = await res.json() as { url: string }
+      setAvatarUrl(url)
+    } catch (err) {
+      toast({ title: 'Erro no upload', description: (err as Error).message, variant: 'destructive' })
+      setAvatarPreview(null)
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
+  function resetDialog() {
+    setNewName('')
+    setAvatarUrl(null)
+    setAvatarPreview(null)
+    setUploadingAvatar(false)
+  }
+
   const { mutate: createCreator, isPending } = useMutation({
     mutationFn: async () => {
       const res = await fetch('/api/creators', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name: newName }),
+        body: JSON.stringify({ name: newName, avatarUrl: avatarUrl ?? undefined }),
       })
       if (!res.ok) throw new Error('Falha ao criar criadora')
       return res.json() as Promise<{ id: string; slug: string }>
     },
     onSuccess: ({ id }) => {
       setCreateOpen(false)
-      setNewName('')
+      resetDialog()
       setSelectedId(id)
       void qc.invalidateQueries({ queryKey: ['creators'] })
       toast({ title: 'Criadora criada' })
@@ -132,13 +162,41 @@ export default function CreatorsPage() {
       {detail && <Tracking detail={detail} />}
 
       {/* create modal */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+      <Dialog open={createOpen} onOpenChange={(o) => { setCreateOpen(o); if (!o) resetDialog() }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Nova criadora</DialogTitle>
             <DialogDescription>Crie uma página de links e comece a rastrear os cliques.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
+            {/* avatar upload */}
+            <div className="flex flex-col items-center gap-3">
+              <label className="group relative cursor-pointer">
+                <div className="h-20 w-20 overflow-hidden rounded-full border-2 border-dashed border-border bg-secondary transition-colors group-hover:border-primary">
+                  {avatarPreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={avatarPreview} alt="preview" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-muted-foreground">
+                      <Camera className="h-6 w-6" />
+                      <span className="text-[10px] font-medium">Foto</span>
+                    </div>
+                  )}
+                  {uploadingAvatar && (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    </div>
+                  )}
+                </div>
+                <input type="file" accept="image/*" className="sr-only" onChange={handleAvatarChange} />
+              </label>
+              {avatarPreview && (
+                <button onClick={() => { setAvatarPreview(null); setAvatarUrl(null) }} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive">
+                  <X className="h-3 w-3" />Remover foto
+                </button>
+              )}
+            </div>
+
             <div>
               <label className="text-sm font-medium">Nome da criadora</label>
               <Input
@@ -167,8 +225,8 @@ export default function CreatorsPage() {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancelar</Button>
-            <Button onClick={() => createCreator()} disabled={isPending || newName.trim().length < 2}>
+            <Button variant="outline" onClick={() => { setCreateOpen(false); resetDialog() }}>Cancelar</Button>
+            <Button onClick={() => createCreator()} disabled={isPending || uploadingAvatar || newName.trim().length < 2}>
               {isPending ? 'Criando…' : 'Criar página'}
             </Button>
           </DialogFooter>

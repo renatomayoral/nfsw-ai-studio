@@ -122,6 +122,7 @@ export async function GET(req: NextRequest) {
 const createSchema = z.object({
   name: z.string().min(2).max(60),
   handle: z.string().max(60).optional(),
+  avatarUrl: z.string().url().optional(),
   platformKeys: z.array(z.string()).optional(),
 })
 
@@ -134,7 +135,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { name, handle, platformKeys } = parsed.data
+  const { name, handle, avatarUrl, platformKeys } = parsed.data
 
   // fetch active platforms from DB
   const allPlatforms = await db.select().from(platform).where(eq(platform.active, true)).orderBy(asc(platform.sortOrder))
@@ -156,6 +157,7 @@ export async function POST(req: NextRequest) {
     name,
     slug,
     handle: handle ?? `@${slug.replace(/-/g, '')}`,
+    avatarUrl: avatarUrl ?? null,
     status: 'draft',
   })
 
