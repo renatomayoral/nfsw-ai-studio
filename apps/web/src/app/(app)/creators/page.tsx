@@ -143,7 +143,7 @@ export default function CreatorsPage() {
         {isLoading ? (
           <div className="space-y-px">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-[70px] animate-pulse bg-muted/40" />
+              <div key={i} className="h-17.5 animate-pulse bg-muted/40" />
             ))}
           </div>
         ) : !creators?.length ? (
@@ -284,7 +284,7 @@ function CreatorRow({ c, selected, onSelect }: { c: CreatorListRow; selected: bo
   return (
     <button
       onClick={onSelect}
-      className={`grid w-full grid-cols-[2.2fr_1.6fr_1fr_1.1fr_1.2fr_0.9fr_36px] items-center gap-3.5 border-b px-5 py-3.5 text-left transition-colors hover:bg-primary/5 ${selected ? 'bg-primary/[0.08]' : ''}`}
+      className={`grid w-full grid-cols-[2.2fr_1.6fr_1fr_1.1fr_1.2fr_0.9fr_36px] items-center gap-3.5 border-b px-5 py-3.5 text-left transition-colors hover:bg-primary/5 ${selected ? 'bg-primary/8' : ''}`}
     >
       <div className="flex min-w-0 items-center gap-3">
         <Avatar name={c.name} url={c.avatarUrl} size={40} />
@@ -303,7 +303,7 @@ function CreatorRow({ c, selected, onSelect }: { c: CreatorListRow; selected: bo
           {c.change >= 0 ? '+' : ''}{String(c.change).replace('.', ',')}%
         </div>
       </div>
-      <div className="flex h-[34px] items-end gap-[3px]">
+      <div className="flex h-8.5 items-end gap-0.75">
         {c.trend.map((h, i) => (
           <div key={i} className="flex-1 rounded-sm bg-primary/55" style={{ height: `${Math.max(h, 6)}%` }} />
         ))}
@@ -328,7 +328,7 @@ function CreatorRow({ c, selected, onSelect }: { c: CreatorListRow; selected: bo
         )}
       </div>
       <div className="flex justify-end text-muted-foreground/50">
-        <ChevronRight className="h-[18px] w-[18px]" />
+        <ChevronRight className="h-4.5 w-4.5" />
       </div>
     </button>
   )
@@ -395,11 +395,11 @@ function Tracking({ detail }: { detail: CreatorDetail }) {
               {nf(detail.totalClicks30d)} <span className="text-[13px] font-medium text-muted-foreground">total</span>
             </span>
           </div>
-          <div className="flex h-[170px] items-end gap-1.5 border-b pb-0.5">
+          <div className="flex h-42.5 items-end gap-1.5 border-b pb-0.5">
             {detail.daily.map((v, i) => (
               <div
                 key={i}
-                className="flex-1 rounded-t origin-bottom"
+                className="flex-1 rounded-t-lg origin-bottom"
                 style={{ height: `${Math.max(Math.round((v / maxD) * 100), 4)}%`, background: 'linear-gradient(180deg,#60a5fa,#3b82f6)' }}
               />
             ))}
@@ -423,7 +423,7 @@ function Tracking({ detail }: { detail: CreatorDetail }) {
                     <strong className="text-foreground">{nf(l.clicks)}</strong> · {l.pct}%
                   </span>
                 </div>
-                <div className="h-[7px] overflow-hidden rounded-full bg-secondary">
+                <div className="h-1.75 overflow-hidden rounded-full bg-secondary">
                   <div className="h-full rounded-full" style={{ width: `${l.barPct}%`, background: l.color }} />
                 </div>
               </div>

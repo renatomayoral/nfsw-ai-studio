@@ -47,13 +47,13 @@ export default async function CreatorPage({ params }: { params: Promise<{ slug: 
     >
       <div
         aria-hidden
-        className="pointer-events-none fixed left-1/2 -top-20 h-[440px] w-[520px] max-w-[96vw] -translate-x-1/2 animate-cglow blur-[50px]"
+        className="pointer-events-none fixed left-1/2 -top-20 h-110 w-130 max-w-[96vw] -translate-x-1/2 animate-cglow blur-[50px]"
         style={{ background: `radial-gradient(circle, ${accent} 0%, transparent 60%)`, opacity: 0.4 }}
       />
 
-      <main className="relative w-full max-w-[430px] px-1.5 pb-12 pt-16 text-center text-white">
+      <main className="relative w-full max-w-107.5 px-1.5 pb-12 pt-16 text-center text-white">
         {/* avatar with animated ring */}
-        <div className="relative mx-auto h-[132px] w-[132px] animate-cfloat">
+        <div className="relative mx-auto h-33 w-33 animate-cfloat">
           <div
             className="absolute inset-0 animate-cspin rounded-full"
             style={{ background: `conic-gradient(from 0deg, ${accent}, #7c3aed, #f472b6, #a78bfa, ${accent})`, filter: 'drop-shadow(0 0 16px rgba(236,72,153,.6))' }}
@@ -61,7 +61,7 @@ export default async function CreatorPage({ params }: { params: Promise<{ slug: 
           <div className="absolute inset-1 rounded-full" style={{ background: '#0a0a0c' }} />
           {c.avatarUrl ? (
             <Image src={c.avatarUrl} alt={c.name} fill priority sizes="132px"
-              className="absolute inset-2 !h-[calc(100%-16px)] !w-[calc(100%-16px)] rounded-full object-cover" />
+              className="absolute inset-2 h-[calc(100%-16px)]! w-[calc(100%-16px)]! rounded-full object-cover" />
           ) : (
             <div className="absolute inset-2 flex items-center justify-center rounded-full text-3xl font-black"
               style={{ background: 'linear-gradient(135deg,#6d5dfc,#22d3ee)' }}>
@@ -71,7 +71,7 @@ export default async function CreatorPage({ params }: { params: Promise<{ slug: 
         </div>
 
         <h1 className="mt-5 inline-flex items-center gap-2 text-[28px] font-black tracking-tight">
-          <span className="bg-gradient-to-br from-white to-pink-300 bg-clip-text text-transparent">{c.name}</span>
+          <span className="bg-linear-to-br from-white to-pink-300 bg-clip-text text-transparent">{c.name}</span>
           <VerifiedBadge color={accent} />
         </h1>
 
@@ -83,11 +83,11 @@ export default async function CreatorPage({ params }: { params: Promise<{ slug: 
           </div>
         )}
 
-        {c.bio && <p className="mx-auto mt-4 max-w-[330px] text-[15px] leading-relaxed" style={{ color: '#c4c4cc' }}>{c.bio}</p>}
+        {c.bio && <p className="mx-auto mt-4 max-w-82.5 text-[15px] leading-relaxed" style={{ color: '#c4c4cc' }}>{c.bio}</p>}
 
         {/* featured link */}
         {featured && (
-          <a href={`/r/${featured.id}`} className="mt-7 block rounded-[22px] p-[18px] text-left transition-transform hover:-translate-y-0.5"
+          <a href={`/r/${featured.id}`} className="mt-7 block rounded-[22px] p-4.5 text-left transition-transform hover:-translate-y-0.5"
             style={{ background: 'linear-gradient(135deg,rgba(236,72,153,.16),rgba(124,58,237,.16))', border: '1px solid rgba(236,72,153,.3)', boxShadow: '0 0 36px -8px rgba(236,72,153,.45)' }}>
             <div className="flex items-center gap-3">
               <LinkTile platform={featured.platform} size={48} />
@@ -106,7 +106,7 @@ export default async function CreatorPage({ params }: { params: Promise<{ slug: 
             const meta = platformMeta(l.platform)
             return (
               <a key={l.id} href={`/r/${l.id}`}
-                className="flex items-center justify-center gap-2.5 rounded-[15px] p-[15px] text-[14.5px] font-semibold transition-transform hover:-translate-y-0.5"
+                className="flex items-center justify-center gap-2.5 rounded-[15px] p-3.75 text-[14.5px] font-semibold transition-transform hover:-translate-y-0.5"
                 style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)' }}>
                 <LinkTile platform={l.platform} size={24} />
                 {l.label ?? meta.label}
