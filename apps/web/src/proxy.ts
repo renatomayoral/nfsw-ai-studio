@@ -17,12 +17,11 @@ export async function proxy(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/studio/:path*',
-    '/studio',
     '/admin/:path*',
+    '/admin',
     '/creators/:path*',
     '/creators',
-    '/library/:path*',
     '/settings/:path*',
+    '/settings',
   ],
 }

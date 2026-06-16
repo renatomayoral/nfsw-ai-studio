@@ -3,14 +3,12 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@repo/ui/lib/utils'
-import { Cpu, Image, Library, Settings, LogOut, Link2 } from 'lucide-react'
+import { LayoutDashboard, Users, Settings, LogOut } from 'lucide-react'
 import { authClient } from '@repo/auth/client'
 
 const navItems = [
-  { href: '/admin', label: 'Dashboard', icon: Cpu },
-  { href: '/studio', label: 'Studio', icon: Image },
-  { href: '/creators', label: 'Criadoras', icon: Link2 },
-  { href: '/library', label: 'Biblioteca', icon: Library },
+  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/creators', label: 'Criadoras', icon: Users },
   { href: '/settings', label: 'Configurações', icon: Settings },
 ]
 
@@ -29,7 +27,7 @@ export function Navigation() {
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex h-14 items-center gap-6">
           <Link href="/admin" className="font-bold text-lg text-primary">
-            🎬 AI Studio
+            CreatorsLink
           </Link>
           <div className="flex items-center gap-1 flex-1">
             {navItems.map(({ href, label, icon: Icon }) => (
@@ -39,8 +37,7 @@ export function Navigation() {
                 className={cn(
                   'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
                   pathname === href ||
-                    (href === '/admin' && pathname.startsWith('/admin')) ||
-                    (href === '/creators' && pathname.startsWith('/creators'))
+                    (href !== '/admin' && pathname.startsWith(href))
                     ? 'bg-primary/10 text-primary'
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent',
                 )}
@@ -51,7 +48,6 @@ export function Navigation() {
             ))}
           </div>
 
-          {/* User section */}
           {session?.user && (
             <div className="flex items-center gap-3">
               {session.user.image ? (
