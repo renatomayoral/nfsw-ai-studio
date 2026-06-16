@@ -14,14 +14,14 @@ import {
 import { Button } from '@repo/ui/components/button'
 import { Input } from '@repo/ui/components/input'
 import { useToast } from '@repo/ui/hooks/use-toast'
-import { Plus, Copy, ChevronRight, Users, MousePointerClick, ExternalLink } from 'lucide-react'
+import { Plus, Copy, ChevronRight, Users, MousePointerClick, ExternalLink, Settings2 } from 'lucide-react'
 import {
-  PLATFORMS,
-  PLATFORM_KEYS,
   slugify,
   type CreatorListRow,
   type CreatorDetail,
 } from '@/lib/creators'
+
+type Platform = { id: string; key: string; label: string; color: string; active: boolean }
 
 const nf = (n: number) => n.toLocaleString('pt-BR')
 
@@ -31,6 +31,11 @@ export default function CreatorsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [newName, setNewName] = useState('')
+
+  const { data: platforms = [] } = useQuery<Platform[]>({
+    queryKey: ['platforms'],
+    queryFn: () => fetch('/api/platforms').then((r) => r.json()),
+  })
 
   const { data: creators, isLoading } = useQuery<CreatorListRow[]>({
     queryKey: ['creators'],
@@ -76,10 +81,18 @@ export default function CreatorsPage() {
             Gerencie as páginas de links e acompanhe o rastreio de cliques de cada criadora.
           </p>
         </div>
-        <Button onClick={() => setCreateOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nova criadora
-        </Button>
+        <div className="flex items-center gap-2">
+          <Link href="/creators/platforms">
+            <Button variant="outline">
+              <Settings2 className="mr-2 h-4 w-4" />
+              Plataformas
+            </Button>
+          </Link>
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nova criadora
+          </Button>
+        </div>
       </div>
 
       {/* stats */}
@@ -139,17 +152,19 @@ export default function CreatorsPage() {
               URL da página:{' '}
               <span className="font-mono text-primary">/p/{newName ? slugify(newName) : 'nome-da-criadora'}</span>
             </div>
-            <div>
-              <p className="text-sm font-medium">Plataformas a rastrear</p>
-              <div className="mt-2.5 flex flex-wrap gap-2">
-                {PLATFORM_KEYS.map((p) => (
-                  <span key={p} className="inline-flex items-center gap-2 rounded-full border bg-secondary px-2.5 py-1.5 text-xs font-semibold">
-                    <span className="h-2 w-2 rounded-full" style={{ background: PLATFORMS[p].color }} />
-                    {PLATFORMS[p].label}
-                  </span>
-                ))}
+            {platforms.filter((p) => p.active).length > 0 && (
+              <div>
+                <p className="text-sm font-medium">Plataformas a rastrear</p>
+                <div className="mt-2.5 flex flex-wrap gap-2">
+                  {platforms.filter((p) => p.active).map((p) => (
+                    <span key={p.id} className="inline-flex items-center gap-2 rounded-full border bg-secondary px-2.5 py-1.5 text-xs font-semibold">
+                      <span className="h-2 w-2 rounded-full" style={{ background: p.color }} />
+                      {p.label}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancelar</Button>

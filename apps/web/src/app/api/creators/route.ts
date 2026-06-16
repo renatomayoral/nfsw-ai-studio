@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'node:crypto'
-import { and, eq, gte, sql } from 'drizzle-orm'
+import { and, asc, eq, gte, inArray, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, schema } from '@repo/db'
 import { auth } from '@repo/auth'
-import {
-  PLATFORMS,
-  PLATFORM_KEYS,
-  platformMeta,
-  slugify,
-  type CreatorListRow,
-} from '@/lib/creators'
+import { platformMeta, slugify, type CreatorListRow } from '@/lib/creators'
 
-const { creator, creatorLink, linkClick } = schema
+const { creator, creatorLink, linkClick, platform } = schema
 
 // ─── GET /api/creators — list the signed-in user's creators + 30d metrics ────
 
@@ -25,92 +19,100 @@ export async function GET(req: NextRequest) {
     orderBy: (c, { desc }) => [desc(c.createdAt)],
   })
 
-  const rows: CreatorListRow[] = await Promise.all(
-    creators.map(async (c) => {
-      // clicks in the last 30d and the 30d before that (for % change)
-      const [curr, prev, byPlatform, trendRows] = await Promise.all([
-        db
-          .select({ n: sql<number>`count(*)::int` })
-          .from(linkClick)
-          .where(
-            and(
-              eq(linkClick.creatorId, c.id),
-              gte(linkClick.createdAt, sql`now() - interval '30 days'`),
-            ),
-          ),
-        db
-          .select({ n: sql<number>`count(*)::int` })
-          .from(linkClick)
-          .where(
-            and(
-              eq(linkClick.creatorId, c.id),
-              gte(linkClick.createdAt, sql`now() - interval '60 days'`),
-              sql`${linkClick.createdAt} < now() - interval '30 days'`,
-            ),
-          ),
-        db
-          .select({
-            platform: creatorLink.platform,
-            n: sql<number>`count(${linkClick.id})::int`,
-          })
-          .from(creatorLink)
-          .leftJoin(
-            linkClick,
-            and(
-              eq(linkClick.linkId, creatorLink.id),
-              gte(linkClick.createdAt, sql`now() - interval '30 days'`),
-            ),
-          )
-          .where(eq(creatorLink.creatorId, c.id))
-          .groupBy(creatorLink.platform),
-        db
-          .select({
-            day: sql<string>`date_trunc('day', ${linkClick.createdAt})`,
-            n: sql<number>`count(*)::int`,
-          })
-          .from(linkClick)
-          .where(
-            and(
-              eq(linkClick.creatorId, c.id),
-              gte(linkClick.createdAt, sql`now() - interval '12 days'`),
-            ),
-          )
-          .groupBy(sql`1`)
-          .orderBy(sql`1`),
-      ])
+  if (!creators.length) return NextResponse.json([])
 
-      const clicks30d = curr[0]?.n ?? 0
-      const prev30d = prev[0]?.n ?? 0
-      const change = prev30d === 0 ? (clicks30d > 0 ? 100 : 0) : Math.round(((clicks30d - prev30d) / prev30d) * 1000) / 10
+  const creatorIds = creators.map((c) => c.id)
 
-      const top = [...byPlatform].sort((a, b) => (b.n ?? 0) - (a.n ?? 0))[0]
-      const topLink = top && (top.n ?? 0) > 0
-        ? { platform: top.platform, ...platformMeta(top.platform) }
-        : null
+  // 4 bulk queries — one per metric, for ALL creators at once
+  const [curr30, prev30, byPlatform, trendRows] = await Promise.all([
+    db
+      .select({ creatorId: linkClick.creatorId, n: sql<number>`count(*)::int` })
+      .from(linkClick)
+      .where(and(inArray(linkClick.creatorId, creatorIds), gte(linkClick.createdAt, sql`now() - interval '30 days'`)))
+      .groupBy(linkClick.creatorId),
+    db
+      .select({ creatorId: linkClick.creatorId, n: sql<number>`count(*)::int` })
+      .from(linkClick)
+      .where(and(
+        inArray(linkClick.creatorId, creatorIds),
+        gte(linkClick.createdAt, sql`now() - interval '60 days'`),
+        sql`${linkClick.createdAt} < now() - interval '30 days'`,
+      ))
+      .groupBy(linkClick.creatorId),
+    db
+      .select({
+        creatorId: creatorLink.creatorId,
+        platform: creatorLink.platform,
+        n: sql<number>`count(${linkClick.id})::int`,
+      })
+      .from(creatorLink)
+      .leftJoin(linkClick, and(
+        eq(linkClick.linkId, creatorLink.id),
+        gte(linkClick.createdAt, sql`now() - interval '30 days'`),
+      ))
+      .where(inArray(creatorLink.creatorId, creatorIds))
+      .groupBy(creatorLink.creatorId, creatorLink.platform),
+    db
+      .select({
+        creatorId: linkClick.creatorId,
+        day: sql<string>`date_trunc('day', ${linkClick.createdAt})`,
+        n: sql<number>`count(*)::int`,
+      })
+      .from(linkClick)
+      .where(and(
+        inArray(linkClick.creatorId, creatorIds),
+        gte(linkClick.createdAt, sql`now() - interval '12 days'`),
+      ))
+      .groupBy(linkClick.creatorId, sql`2`)
+      .orderBy(linkClick.creatorId, sql`2`),
+  ])
 
-      // build a 12-bucket sparkline (0–100)
-      const counts = trendRows.map((r) => r.n)
-      const max = Math.max(1, ...counts)
-      const trend = Array.from({ length: 12 }, (_, i) =>
-        Math.round(((counts[i] ?? 0) / max) * 100),
-      )
+  const curr30Map = new Map(curr30.map((r) => [r.creatorId, r.n]))
+  const prev30Map = new Map(prev30.map((r) => [r.creatorId, r.n]))
+  const byPlatformMap = new Map<string, typeof byPlatform>()
+  for (const r of byPlatform) {
+    const arr = byPlatformMap.get(r.creatorId) ?? []
+    arr.push(r)
+    byPlatformMap.set(r.creatorId, arr)
+  }
+  const trendMap = new Map<string, typeof trendRows>()
+  for (const r of trendRows) {
+    const arr = trendMap.get(r.creatorId) ?? []
+    arr.push(r)
+    trendMap.set(r.creatorId, arr)
+  }
 
-      return {
-        id: c.id,
-        name: c.name,
-        handle: c.handle,
-        slug: c.slug,
-        avatarUrl: c.avatarUrl,
-        status: c.status as 'live' | 'draft',
-        clicks30d,
-        change,
-        topLink: topLink
-          ? { platform: topLink.platform, label: topLink.label, color: topLink.color }
-          : null,
-        trend,
-      }
-    }),
-  )
+  const rows: CreatorListRow[] = creators.map((c) => {
+    const clicks30d = curr30Map.get(c.id) ?? 0
+    const prev30d = prev30Map.get(c.id) ?? 0
+    const change = prev30d === 0 ? (clicks30d > 0 ? 100 : 0) : Math.round(((clicks30d - prev30d) / prev30d) * 1000) / 10
+
+    const platforms = byPlatformMap.get(c.id) ?? []
+    const top = [...platforms].sort((a, b) => (b.n ?? 0) - (a.n ?? 0))[0]
+    const topLink = top && (top.n ?? 0) > 0
+      ? { platform: top.platform, ...platformMeta(top.platform) }
+      : null
+
+    const dayRows = trendMap.get(c.id) ?? []
+    const counts = dayRows.map((r) => r.n)
+    const maxCount = Math.max(1, ...counts)
+    const trend = Array.from({ length: 12 }, (_, i) =>
+      Math.round(((counts[i] ?? 0) / maxCount) * 100),
+    )
+
+    return {
+      id: c.id,
+      name: c.name,
+      handle: c.handle,
+      slug: c.slug,
+      avatarUrl: c.avatarUrl,
+      status: c.status as 'live' | 'draft',
+      clicks30d,
+      change,
+      topLink: topLink ? { platform: topLink.platform, label: topLink.label, color: topLink.color } : null,
+      trend,
+    }
+  })
 
   return NextResponse.json(rows)
 }
@@ -120,7 +122,7 @@ export async function GET(req: NextRequest) {
 const createSchema = z.object({
   name: z.string().min(2).max(60),
   handle: z.string().max(60).optional(),
-  platforms: z.array(z.enum(PLATFORM_KEYS as [string, ...string[]])).optional(),
+  platformKeys: z.array(z.string()).optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -132,7 +134,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { name, handle, platforms } = parsed.data
+  const { name, handle, platformKeys } = parsed.data
+
+  // fetch active platforms from DB
+  const allPlatforms = await db.select().from(platform).where(eq(platform.active, true)).orderBy(asc(platform.sortOrder))
+
+  // filter to requested keys, or use all active platforms
+  const chosen = platformKeys?.length
+    ? allPlatforms.filter((p) => platformKeys.includes(p.key))
+    : allPlatforms
 
   // ensure a unique slug
   let slug = slugify(name)
@@ -149,17 +159,18 @@ export async function POST(req: NextRequest) {
     status: 'draft',
   })
 
-  const chosen = platforms?.length ? platforms : (['onlyfans', 'instagram'] as const)
-  await db.insert(creatorLink).values(
-    chosen.map((p, i) => ({
-      id: randomUUID(),
-      creatorId,
-      platform: p,
-      label: PLATFORMS[p as keyof typeof PLATFORMS]?.label ?? p,
-      url: PLATFORMS[p as keyof typeof PLATFORMS]?.baseUrl ?? '#',
-      sortOrder: i,
-    })),
-  )
+  if (chosen.length) {
+    await db.insert(creatorLink).values(
+      chosen.map((p, i) => ({
+        id: randomUUID(),
+        creatorId,
+        platform: p.key,
+        label: p.label,
+        url: p.baseUrl,
+        sortOrder: i,
+      })),
+    )
+  }
 
   return NextResponse.json({ id: creatorId, slug }, { status: 201 })
 }

@@ -426,6 +426,16 @@ cd packages/db && pnpm drizzle-kit generate
 cd packages/db && pnpm drizzle-kit migrate
 ```
 
+**Problema conhecido:** o `drizzle-kit migrate` às vezes reporta "applied successfully" mas não executa o SQL nem registra a migration na tabela `drizzle.__drizzle_migrations`. Após rodar o migrate, sempre verificar:
+```bash
+node --env-file=.env -e "import('postgres').then(async ({default:pg})=>{const sql=pg(process.env.DATABASE_URL);const m=await sql\`SELECT hash FROM drizzle.__drizzle_migrations ORDER BY created_at\`;console.log(m.map(r=>r.hash).join(', '));await sql.end()})"
+```
+Se a migration não aparecer, aplicar o SQL manualmente e registrar na tabela:</p>
+```sql
+-- Executar o SQL do arquivo .sql manualmente, depois:
+INSERT INTO drizzle.__drizzle_migrations (hash, created_at) VALUES ('0002_nome_da_migration', <timestamp_do_journal>);
+```
+
 ---
 
 ## Convenções de Código
