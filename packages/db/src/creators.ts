@@ -6,7 +6,6 @@ import {
   boolean,
   index,
 } from 'drizzle-orm/pg-core'
-import { user } from './schema'
 
 // ─── Creators — one link-in-bio page per content creator ─────────────────────
 // Owned by an authenticated user (the agency/manager account). The public
@@ -16,9 +15,7 @@ export const creator = pgTable(
   'creator',
   {
     id: text('id').primaryKey(),
-    userId: text('user_id')
-      .notNull()
-      .references(() => user.id, { onDelete: 'cascade' }),
+    userId: text('user_id').notNull(),
     /** Display name, e.g. "Babi Barelli" */
     name: text('name').notNull(),
     /** URL slug — unique, e.g. "babi" → /p/babi */

@@ -20,6 +20,8 @@ export const config = {
     '/studio/:path*',
     '/studio',
     '/admin/:path*',
+    '/creators/:path*',
+    '/creators',
     '/library/:path*',
     '/settings/:path*',
   ],

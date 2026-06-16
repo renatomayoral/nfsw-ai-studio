@@ -8,6 +8,13 @@
       "when": 1781552419398,
       "tag": "0000_chilly_hellfire_club",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781612637926,
+      "tag": "0001_secret_skreet",
+      "breakpoints": true
     }
   ]
 }

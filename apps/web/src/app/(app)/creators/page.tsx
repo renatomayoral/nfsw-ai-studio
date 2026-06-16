@@ -34,23 +34,15 @@ export default function CreatorsPage() {
 
   const { data: creators, isLoading } = useQuery<CreatorListRow[]>({
     queryKey: ['creators'],
-    queryFn: async () => {
-      const r = await fetch('/api/creators')
-      if (!r.ok) throw new Error('Failed to fetch creators')
-      return r.json()
-    },
+    queryFn: () => fetch('/api/creators').then((r) => r.json()),
   })
 
   // default selection = first creator
-  const activeId = selectedId ?? (Array.isArray(creators) ? creators[0]?.id : null)
+  const activeId = selectedId ?? creators?.[0]?.id ?? null
 
   const { data: detail } = useQuery<CreatorDetail>({
     queryKey: ['creator', activeId],
-    queryFn: async () => {
-      const r = await fetch(`/api/creators/${activeId}`)
-      if (!r.ok) throw new Error('Failed to fetch detail')
-      return r.json()
-    },
+    queryFn: () => fetch(`/api/creators/${activeId}`).then((r) => r.json()),
     enabled: !!activeId,
   })
 
@@ -79,7 +71,7 @@ export default function CreatorsPage() {
       {/* title row */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Criadoras</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight">Criadoras</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
             Gerencie as páginas de links e acompanhe o rastreio de cliques de cada criadora.
           </p>
@@ -91,12 +83,12 @@ export default function CreatorsPage() {
       </div>
 
       {/* stats */}
-      <Stats creators={Array.isArray(creators) ? creators : []} />
+      <Stats creators={creators ?? []} />
 
       {/* creators table */}
       <div className="rounded-2xl border bg-card">
         <div className="flex items-center justify-between border-b px-5 py-4">
-          <span className="text-sm font-semibold">Suas criadoras</span>
+          <span className="text-[15px] font-bold">Suas criadoras</span>
           <span className="text-xs text-muted-foreground">Clique numa criadora para ver o rastreio</span>
         </div>
 
@@ -111,7 +103,7 @@ export default function CreatorsPage() {
               <div key={i} className="h-[70px] animate-pulse bg-muted/40" />
             ))}
           </div>
-        ) : !Array.isArray(creators) || creators.length === 0 ? (
+        ) : !creators?.length ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
             <Users className="h-10 w-10 opacity-30" />
             <p className="text-sm">Nenhuma criadora ainda. Crie a primeira página.</p>
@@ -200,7 +192,7 @@ function Stats({ creators }: { creators: CreatorListRow[] }) {
             <span className="text-[13px] font-medium text-muted-foreground">{c.label}</span>
             <MousePointerClick className="h-4 w-4 text-muted-foreground/60" />
           </div>
-          <div className="mt-2.5 text-2xl font-bold">{c.value}</div>
+          <div className="mt-2.5 text-[28px] font-extrabold leading-tight">{c.value}</div>
           <div className="mt-0.5 text-xs text-muted-foreground">{c.sub}</div>
         </div>
       ))}
@@ -278,7 +270,7 @@ function Tracking({ detail }: { detail: CreatorDetail }) {
         <div className="flex items-center gap-3">
           <Avatar name={detail.name} url={detail.avatarUrl} size={44} />
           <div>
-            <div className="text-base font-bold">Rastreio de links · {detail.name}</div>
+            <div className="text-[16px] font-bold">Rastreio de links · {detail.name}</div>
             <div className="font-mono text-[13px] text-muted-foreground">/p/{detail.slug}</div>
           </div>
         </div>
@@ -297,7 +289,7 @@ function Tracking({ detail }: { detail: CreatorDetail }) {
         <div>
           <div className="mb-4 flex items-baseline justify-between">
             <span className="text-[13px] font-semibold text-muted-foreground">Cliques · últimos 14 dias</span>
-            <span className="text-[22px] font-bold">
+            <span className="text-[22px] font-extrabold">
               {nf(detail.totalClicks30d)} <span className="text-[13px] font-medium text-muted-foreground">total</span>
             </span>
           </div>
