@@ -1,9 +1,26 @@
 // ─── Shared ──────────────────────────────────────────────────────────────────
-export { PLANS, PLAN_ALIASES } from './plans.js'
+export { PLANS, PLAN_ALIASES, TAKE_RATE_BPS, takeRatePercent } from './plans.js'
 export type { Plan } from './plans.js'
 
 // ─── Stripe (fiat card subscriptions) ────────────────────────────────────────
 export { stripe, getStripe } from './stripe/index.js'
+export {
+  createConnectedAccount,
+  createOnboardingLink,
+  isAccountReady,
+  createDashboardLink,
+  createSubscriptionCheckout,
+} from './stripe/connect.js'
+export type {
+  CreateConnectedAccountParams,
+  OnboardingLinkParams,
+  SubscriptionCheckoutParams,
+} from './stripe/connect.js'
+export {
+  constructWebhookEvent,
+  ACCESS_GRANTING_EVENTS,
+  ACCESS_REVOKING_EVENTS,
+} from './stripe/webhook.js'
 
 // ─── NOWPayments (crypto subscriptions) ──────────────────────────────────────
 export {

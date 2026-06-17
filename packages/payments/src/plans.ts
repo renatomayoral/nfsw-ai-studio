@@ -41,3 +41,19 @@ export const PLAN_ALIASES: Record<string, string> = {
   starter: 'spark',
   studio: 'pro',
 }
+
+// ─── Platform take rate (application fee on creator VIP sales) ────────────────
+// Hybrid tiered model: the platform fee on each creator sale shrinks as the
+// creator upgrades, which rewards upgrading. Expressed as a percentage.
+export const TAKE_RATE_BPS: Record<string, number> = {
+  spark: 800,   // 8.0%
+  creator: 500, // 5.0%
+  pro: 300,     // 3.0%
+}
+
+/** Resolves the application-fee percent for a creator's platform plan. */
+export function takeRatePercent(plan: string): number {
+  const key = PLAN_ALIASES[plan] ?? plan
+  const bps = TAKE_RATE_BPS[key] ?? TAKE_RATE_BPS['spark']!
+  return bps / 100
+}
