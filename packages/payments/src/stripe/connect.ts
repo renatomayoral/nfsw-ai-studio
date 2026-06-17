@@ -1,6 +1,6 @@
 import type Stripe from 'stripe'
-import { getStripe } from './index.js'
-import { takeRatePercent } from '../plans.js'
+import { getStripe } from './index'
+import { takeRatePercent } from '../plans'
 
 // ─── Stripe Connect (multi-creator marketplace) ──────────────────────────────
 // Each creator gets their own Express connected account. Fan subscription

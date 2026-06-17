@@ -1,9 +1,9 @@
 // ─── Shared ──────────────────────────────────────────────────────────────────
-export { PLANS, PLAN_ALIASES, TAKE_RATE_BPS, takeRatePercent } from './plans.js'
-export type { Plan } from './plans.js'
+export { PLANS, PLAN_ALIASES, TAKE_RATE_BPS, takeRatePercent } from './plans'
+export type { Plan } from './plans'
 
 // ─── Stripe (fiat card subscriptions) ────────────────────────────────────────
-export { stripe, getStripe } from './stripe/index.js'
+export { stripe, getStripe } from './stripe/index'
 export type { default as Stripe } from 'stripe'
 export {
   createConnectedAccount,
@@ -13,18 +13,18 @@ export {
   createVipPrice,
   archiveVipPrice,
   createSubscriptionCheckout,
-} from './stripe/connect.js'
+} from './stripe/connect'
 export type {
   CreateConnectedAccountParams,
   OnboardingLinkParams,
   CreateVipPriceParams,
   SubscriptionCheckoutParams,
-} from './stripe/connect.js'
+} from './stripe/connect'
 export {
   constructWebhookEvent,
   ACCESS_GRANTING_EVENTS,
   ACCESS_REVOKING_EVENTS,
-} from './stripe/webhook.js'
+} from './stripe/webhook'
 
 // ─── NOWPayments (crypto subscriptions) ──────────────────────────────────────
 export {
@@ -32,7 +32,7 @@ export {
   NowPaymentsError,
   getNowPayments,
   isPaidStatus,
-} from './nowpayments/index.js'
+} from './nowpayments/index'
 export type {
   NowPaymentsConfig,
   PaymentStatus,
@@ -45,4 +45,4 @@ export type {
   CreateSubscriptionParams,
   Subscription,
   IpnPayload,
-} from './nowpayments/types.js'
+} from './nowpayments/types'

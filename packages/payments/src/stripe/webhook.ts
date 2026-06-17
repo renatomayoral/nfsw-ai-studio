@@ -1,5 +1,5 @@
 import type Stripe from 'stripe'
-import { getStripe } from './index.js'
+import { getStripe } from './index'
 
 /**
  * Verifies a Stripe webhook signature and returns the parsed event.

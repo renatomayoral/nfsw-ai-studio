@@ -11,7 +11,7 @@ import type {
   Subscription,
   PaymentStatus,
   IpnPayload,
-} from './types.js'
+} from './types'
 
 const DEFAULT_BASE_URL = 'https://api.nowpayments.io/v1'
 
