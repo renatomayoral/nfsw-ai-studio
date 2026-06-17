@@ -34,8 +34,6 @@ jobs:
           gcloud builds submit \
             --tag $IMAGE:${{ github.sha }} \
             --project $PROJECT_ID \
-            --file Dockerfile \
-            --substitutions _DATABASE_URL=$(gcloud secrets versions access latest --secret=DATABASE_URL --project=$PROJECT_ID) \
             .
 
       - name: Deploy to Cloud Run
@@ -69,3 +67,6 @@ jobs:
             --set-secrets "STRIPE_PRICE_SPARK=STRIPE_PRICE_SPARK:latest" \
             --set-secrets "STRIPE_PRICE_CREATOR=STRIPE_PRICE_CREATOR:latest" \
             --set-secrets "STRIPE_PRICE_PRO=STRIPE_PRICE_PRO:latest"
+            # NOWPayments (crypto rail) — add when enabling the second rail:
+            # --set-secrets "NOWPAYMENTS_API_KEY=NOWPAYMENTS_API_KEY:latest"
+            # --set-secrets "NOWPAYMENTS_IPN_SECRET=NOWPAYMENTS_IPN_SECRET:latest"
