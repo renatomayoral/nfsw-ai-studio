@@ -20,18 +20,21 @@ function isAppHost(hostname: string) {
 export async function proxy(req: NextRequest) {
   const hostname = req.headers.get('host') ?? ''
 
-  // ── Custom domain rewrite ────────────────────────────────────────────────
-  // When a creator points their domain here we rewrite to /p/{slug}
-  // without redirecting (URL stays as the custom domain).
-  if (!isAppHost(hostname) && req.nextUrl.pathname === '/') {
-    const slug = await resolveCustomDomain(hostname.split(':')[0] ?? '')
-    if (slug) {
-      const url = req.nextUrl.clone()
-      url.pathname = `/p/${slug}`
-      return NextResponse.rewrite(url)
+  // ── Root path handling ───────────────────────────────────────────────────
+  if (req.nextUrl.pathname === '/') {
+    // Custom creator domain → rewrite to /p/{slug} (URL stays as custom domain)
+    if (!isAppHost(hostname)) {
+      const slug = await resolveCustomDomain(hostname.split(':')[0] ?? '')
+      if (slug) {
+        const url = req.nextUrl.clone()
+        url.pathname = `/p/${slug}`
+        return NextResponse.rewrite(url)
+      }
+      // Unknown custom domain — 404
+      return new NextResponse('Not found', { status: 404 })
     }
-    // Unknown custom domain — 404
-    return new NextResponse('Not found', { status: 404 })
+    // App host root is the public landing page — no auth required
+    return NextResponse.next()
   }
 
   // ── Auth guard for protected app routes ──────────────────────────────────

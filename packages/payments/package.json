@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./stripe": "./src/stripe/index.ts",
+    "./nowpayments": "./src/nowpayments/index.ts",
+    "./plans": "./src/plans.ts"
   },
   "scripts": {
     "lint": "tsc --noEmit",
