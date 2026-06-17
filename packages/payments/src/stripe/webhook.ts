@@ -7,10 +7,7 @@ import { getStripe } from './index'
  * Pass the RAW request body (string/Buffer) — not the parsed JSON — or
  * signature verification will fail.
  */
-export function constructWebhookEvent(
-  rawBody: string | Buffer,
-  signature: string,
-): Stripe.Event {
+export function constructWebhookEvent(rawBody: string | Buffer, signature: string): Stripe.Event {
   const secret = process.env['STRIPE_WEBHOOK_SECRET']
   if (!secret) throw new Error('STRIPE_WEBHOOK_SECRET is not set')
   return getStripe().webhooks.constructEvent(rawBody, signature, secret)

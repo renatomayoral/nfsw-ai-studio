@@ -5,12 +5,7 @@ export type ComfyNode = {
   inputs: Record<string, unknown>
 }
 
-export type JobStatus =
-  | 'pending'
-  | 'running'
-  | 'completed'
-  | 'failed'
-  | 'cancelled'
+export type JobStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled'
 
 export type JobOutput = {
   promptId: string

@@ -15,22 +15,22 @@ export type Plan = {
 export const PLANS: Record<string, Plan> = {
   spark: {
     priceId: process.env['STRIPE_PRICE_SPARK'],
-    amount: 1200,       // $12.00
-    amountAnnual: 960,  // $9.60
+    amount: 1200, // $12.00
+    amountAnnual: 960, // $9.60
     label: 'Spark',
     description: 'Para criadores que estão começando. Imagens ilimitadas, 5 vídeos/dia.',
   },
   creator: {
     priceId: process.env['STRIPE_PRICE_CREATOR'],
-    amount: 3900,         // $39.00
-    amountAnnual: 3120,   // $31.20
+    amount: 3900, // $39.00
+    amountAnnual: 3120, // $31.20
     label: 'Creator',
     description: 'Para criadores profissionais. I2V, LoRA, 20 vídeos/dia.',
   },
   pro: {
     priceId: process.env['STRIPE_PRICE_PRO'],
-    amount: 9900,         // $99.00
-    amountAnnual: 7920,   // $79.20
+    amount: 9900, // $99.00
+    amountAnnual: 7920, // $79.20
     label: 'Pro',
     description: 'Para volume alto e estúdios. API, LoRA training, 60 vídeos/dia.',
   },
@@ -46,9 +46,9 @@ export const PLAN_ALIASES: Record<string, string> = {
 // Hybrid tiered model: the platform fee on each creator sale shrinks as the
 // creator upgrades, which rewards upgrading. Expressed as a percentage.
 export const TAKE_RATE_BPS: Record<string, number> = {
-  spark: 800,   // 8.0%
+  spark: 800, // 8.0%
   creator: 500, // 5.0%
-  pro: 300,     // 3.0%
+  pro: 300, // 3.0%
 }
 
 /** Resolves the application-fee percent for a creator's platform plan. */

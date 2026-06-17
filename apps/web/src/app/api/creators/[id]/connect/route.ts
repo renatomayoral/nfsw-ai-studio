@@ -26,10 +26,7 @@ function appUrl(): string {
 // on first call, then returns a fresh onboarding link. If already onboarded,
 // returns a dashboard login link instead.
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({ headers: req.headers })
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -74,10 +71,7 @@ export async function POST(
 // Re-checks the connected account and syncs `stripeOnboarded`. Called when the
 // creator returns from the Stripe onboarding flow.
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({ headers: req.headers })
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

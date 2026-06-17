@@ -9,9 +9,17 @@ const { platform } = schema
 // ─── PATCH /api/platforms/[id] — update a platform ───────────────────────────
 
 const updateSchema = z.object({
-  key: z.string().min(1).max(40).regex(/^[a-z0-9_-]+$/).optional(),
+  key: z
+    .string()
+    .min(1)
+    .max(40)
+    .regex(/^[a-z0-9_-]+$/)
+    .optional(),
   label: z.string().min(1).max(60).optional(),
-  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  color: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .optional(),
   baseUrl: z.string().url().optional(),
   sortOrder: z.number().int().min(0).optional(),
   active: z.boolean().optional(),
@@ -26,9 +34,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
   const existing = await db.select({ id: platform.id }).from(platform).where(eq(platform.id, id))
-  if (!existing.length) return NextResponse.json({ error: 'Plataforma não encontrada' }, { status: 404 })
+  if (!existing.length)
+    return NextResponse.json({ error: 'Plataforma não encontrada' }, { status: 404 })
 
-  await db.update(platform).set({ ...parsed.data, updatedAt: new Date() }).where(eq(platform.id, id))
+  await db
+    .update(platform)
+    .set({ ...parsed.data, updatedAt: new Date() })
+    .where(eq(platform.id, id))
 
   const row = await db.select().from(platform).where(eq(platform.id, id))
   return NextResponse.json(row[0])
@@ -43,7 +55,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const { id } = await params
 
   const existing = await db.select({ id: platform.id }).from(platform).where(eq(platform.id, id))
-  if (!existing.length) return NextResponse.json({ error: 'Plataforma não encontrada' }, { status: 404 })
+  if (!existing.length)
+    return NextResponse.json({ error: 'Plataforma não encontrada' }, { status: 404 })
 
   await db.delete(platform).where(eq(platform.id, id))
   return new NextResponse(null, { status: 204 })

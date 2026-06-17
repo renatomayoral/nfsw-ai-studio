@@ -6,13 +6,7 @@ config({ path: path.resolve(__dirname, '../../.env') })
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  transpilePackages: [
-    '@repo/ui',
-    '@repo/shared',
-    '@repo/auth',
-    '@repo/db',
-    '@repo/payments',
-  ],
+  transpilePackages: ['@repo/ui', '@repo/shared', '@repo/auth', '@repo/db', '@repo/payments'],
   images: {
     remotePatterns: [
       {

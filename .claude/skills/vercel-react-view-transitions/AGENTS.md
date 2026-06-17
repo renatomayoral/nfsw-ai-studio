@@ -90,11 +90,11 @@ Reserve directional slides for hierarchical navigation (list → detail) and ord
 ### The `<ViewTransition>` Component
 
 ```jsx
-import { ViewTransition } from "react";
+import { ViewTransition } from 'react'
 
-<ViewTransition>
+;<ViewTransition>
   <Component />
-</ViewTransition>;
+</ViewTransition>
 ```
 
 React auto-assigns a unique `view-transition-name` and calls `document.startViewTransition` behind the scenes. Never call `startViewTransition` yourself.
@@ -129,12 +129,7 @@ VT only activates enter/exit if it appears **before any DOM nodes**:
 Values: `"auto"` (browser cross-fade), `"none"` (disabled), `"class-name"` (custom CSS), or `{ [type]: value }` for type-specific animations.
 
 ```jsx
-<ViewTransition
-  default="none"
-  enter="slide-in"
-  exit="slide-out"
-  share="morph"
-/>
+<ViewTransition default="none" enter="slide-in" exit="slide-out" share="morph" />
 ```
 
 If `default` is `"none"`, all triggers are off unless explicitly listed.
@@ -154,10 +149,10 @@ Tag transitions with `addTransitionType` so VTs can pick different animations. C
 
 ```jsx
 startTransition(() => {
-  addTransitionType("nav-forward");
-  addTransitionType("select-item");
-  router.push("/detail/1");
-});
+  addTransitionType('nav-forward')
+  addTransitionType('select-item')
+  router.push('/detail/1')
+})
 ```
 
 Map types to CSS classes. Works on `enter`, `exit`, **and** `share`:
@@ -165,19 +160,19 @@ Map types to CSS classes. Works on `enter`, `exit`, **and** `share`:
 ```jsx
 <ViewTransition
   enter={{
-    "nav-forward": "slide-from-right",
-    "nav-back": "slide-from-left",
-    default: "none",
+    'nav-forward': 'slide-from-right',
+    'nav-back': 'slide-from-left',
+    default: 'none',
   }}
   exit={{
-    "nav-forward": "slide-to-left",
-    "nav-back": "slide-to-right",
-    default: "none",
+    'nav-forward': 'slide-to-left',
+    'nav-back': 'slide-to-right',
+    default: 'none',
   }}
   share={{
-    "nav-forward": "morph-forward",
-    "nav-back": "morph-back",
-    default: "morph",
+    'nav-forward': 'morph-forward',
+    'nav-back': 'morph-back',
+    default: 'morph',
   }}
   default="none"
 >
@@ -238,7 +233,7 @@ Same `name` on two VTs — one unmounting, one mounting — creates a shared ele
     <ViewTransition enter="fade-in" exit="fade-out">
       <Panel />
     </ViewTransition>
-  );
+  )
 }
 ```
 
@@ -250,7 +245,7 @@ Same `name` on two VTs — one unmounting, one mounting — creates a shared ele
     <ViewTransition key={item.id}>
       <ItemCard item={item} />
     </ViewTransition>
-  ));
+  ))
 }
 ```
 
@@ -264,18 +259,18 @@ Shared elements and list identity are independent concerns — don't confuse one
 {
   items.map((item) => (
     <ViewTransition key={item.id}>
-      {" "}
+      {' '}
       {/* list identity */}
       <Link href={`/items/${item.id}`}>
         <ViewTransition name={`item-image-${item.id}`} share="morph">
-          {" "}
+          {' '}
           {/* shared element */}
           <Image src={item.image} />
         </ViewTransition>
         <p>{item.name}</p>
       </Link>
     </ViewTransition>
-  ));
+  ))
 }
 ```
 
@@ -401,7 +396,7 @@ Copy the **complete** CSS recipe set from the CSS Animation Recipes section belo
 ## Step 3: Isolate Persistent Elements
 
 ```jsx
-<header style={{ viewTransitionName: "site-header" }}>...</header>
+<header style={{ viewTransitionName: 'site-header' }}>...</header>
 ```
 
 ```css
@@ -417,9 +412,9 @@ For `backdrop-blur`/`backdrop-filter`, use the backdrop-blur workaround instead.
 
 ```jsx
 startTransition(() => {
-  addTransitionType("nav-forward");
-  router.push("/detail/1");
-});
+  addTransitionType('nav-forward')
+  router.push('/detail/1')
+})
 ```
 
 Wrap each **page component** (not layout) in a type-keyed VT:
@@ -427,14 +422,14 @@ Wrap each **page component** (not layout) in a type-keyed VT:
 ```jsx
 <ViewTransition
   enter={{
-    "nav-forward": "nav-forward",
-    "nav-back": "nav-back",
-    default: "none",
+    'nav-forward': 'nav-forward',
+    'nav-back': 'nav-back',
+    default: 'none',
   }}
   exit={{
-    "nav-forward": "nav-forward",
-    "nav-back": "nav-back",
-    default: "none",
+    'nav-forward': 'nav-forward',
+    'nav-back': 'nav-back',
+    default: 'none',
   }}
   default="none"
 >
@@ -544,27 +539,24 @@ For Next.js-specific steps, see the Next.js section below.
 ## Searchable Grid with `useDeferredValue`
 
 ```tsx
-"use client";
+'use client'
 
-import { useDeferredValue, useState, ViewTransition, Suspense } from "react";
+import { useDeferredValue, useState, ViewTransition, Suspense } from 'react'
 
 export default function SearchableGrid({ itemsPromise }) {
-  const [search, setSearch] = useState("");
-  const deferredSearch = useDeferredValue(search);
+  const [search, setSearch] = useState('')
+  const deferredSearch = useDeferredValue(search)
 
   return (
     <>
-      <input
-        value={search}
-        onChange={(e) => setSearch(e.currentTarget.value)}
-      />
+      <input value={search} onChange={(e) => setSearch(e.currentTarget.value)} />
       <ViewTransition>
         <Suspense fallback={<GridSkeleton />}>
           <ItemGrid itemsPromise={itemsPromise} search={deferredSearch} />
         </Suspense>
       </ViewTransition>
     </>
-  );
+  )
 }
 ```
 
@@ -573,13 +565,13 @@ Per-item named VTs in deferred lists trigger cross-fades on every keystroke. Fix
 ## Card Expand/Collapse with `startTransition`
 
 ```tsx
-"use client";
+'use client'
 
-import { useState, useRef, startTransition, ViewTransition } from "react";
+import { useState, useRef, startTransition, ViewTransition } from 'react'
 
 export default function ItemGrid({ items }) {
-  const [expandedId, setExpandedId] = useState(null);
-  const scrollRef = useRef(0);
+  const [expandedId, setExpandedId] = useState(null)
+  const scrollRef = useRef(0)
 
   return expandedId ? (
     <ViewTransition enter="slide-in" name={`item-${expandedId}`}>
@@ -587,13 +579,9 @@ export default function ItemGrid({ items }) {
         item={items.find((i) => i.id === expandedId)}
         onClose={() => {
           startTransition(() => {
-            setExpandedId(null);
-            setTimeout(
-              () =>
-                window.scrollTo({ behavior: "smooth", top: scrollRef.current }),
-              100,
-            );
-          });
+            setExpandedId(null)
+            setTimeout(() => window.scrollTo({ behavior: 'smooth', top: scrollRef.current }), 100)
+          })
         }}
       />
     </ViewTransition>
@@ -604,14 +592,14 @@ export default function ItemGrid({ items }) {
           <ItemCard
             item={item}
             onSelect={() => {
-              scrollRef.current = window.scrollY;
-              startTransition(() => setExpandedId(item.id));
+              scrollRef.current = window.scrollY
+              startTransition(() => setExpandedId(item.id))
             }}
           />
         </ViewTransition>
       ))}
     </div>
-  );
+  )
 }
 ```
 
@@ -630,7 +618,7 @@ Omit `key` to trigger update (cross-fade) instead of exit + enter. Avoids Suspen
 Persistent elements get captured in page's transition snapshot. Fix with `viewTransitionName`:
 
 ```jsx
-<nav style={{ viewTransitionName: "persistent-nav" }}>{/* ... */}</nav>
+<nav style={{ viewTransitionName: 'persistent-nav' }}>{/* ... */}</nav>
 ```
 
 ```css
@@ -650,19 +638,19 @@ Give matching controls the same `viewTransitionName`. Don't put manual `viewTran
 
 ```jsx
 function AnimatedCollapse({ open, children }) {
-  if (!open) return null;
+  if (!open) return null
   return (
     <ViewTransition enter="expand-in" exit="collapse-out">
       {children}
     </ViewTransition>
-  );
+  )
 }
 ```
 
 ## Preserve State with Activity
 
 ```jsx
-<Activity mode={isVisible ? "visible" : "hidden"}>
+<Activity mode={isVisible ? 'visible' : 'hidden'}>
   <ViewTransition enter="slide-in" exit="slide-out">
     <Sidebar />
   </ViewTransition>
@@ -684,12 +672,12 @@ Imperative control via `onEnter`, `onExit`, `onUpdate`, `onShare`. Always return
   onEnter={(instance, types) => {
     const anim = instance.new.animate(
       [
-        { transform: "scale(0.8)", opacity: 0 },
-        { transform: "scale(1)", opacity: 1 },
+        { transform: 'scale(0.8)', opacity: 0 },
+        { transform: 'scale(1)', opacity: 1 },
       ],
-      { duration: 300, easing: "ease-out" },
-    );
-    return () => anim.cancel();
+      { duration: 300, easing: 'ease-out' },
+    )
+    return () => anim.cancel()
   }}
 >
   <Component />
@@ -977,7 +965,7 @@ Avoids raster scaling artifacts on text by hiding the old snapshot and showing t
 ```js
 // next.config.js
 experimental: {
-  viewTransition: true;
+  viewTransition: true
 }
 ```
 
@@ -1005,7 +993,7 @@ Don't add a layout-level VT wrapping `{children}` if pages have their own VTs �
 Works in Server Components, no wrapper needed:
 
 ```tsx
-<Link href="/products/1" transitionTypes={["nav-forward"]}>
+<Link href="/products/1" transitionTypes={['nav-forward']}>
   View
 </Link>
 ```
@@ -1026,8 +1014,8 @@ Directional slides + Suspense reveals coexist because they fire at different mom
 
 ```tsx
 <ViewTransition
-  enter={{ "nav-forward": "slide-from-right", default: "none" }}
-  exit={{ "nav-forward": "slide-to-left", default: "none" }}
+  enter={{ 'nav-forward': 'slide-from-right', default: 'none' }}
+  exit={{ 'nav-forward': 'slide-to-left', default: 'none' }}
   default="none"
 >
   <div>
@@ -1068,12 +1056,7 @@ Page stays mounted on dynamic segment change — enter/exit never fire. Use `key
 
 ```tsx
 <Suspense fallback={<Skeleton />}>
-  <ViewTransition
-    key={slug}
-    name={`collection-${slug}`}
-    share="auto"
-    default="none"
-  >
+  <ViewTransition key={slug} name={`collection-${slug}`} share="auto" default="none">
     <Content slug={slug} />
   </ViewTransition>
 </Suspense>

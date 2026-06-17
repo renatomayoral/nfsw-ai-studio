@@ -2,11 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@repo/auth'
 
 // Hostnames that belong to the app itself — not custom creator domains
-const APP_HOSTNAMES = new Set<string>([
-  'localhost',
-  '127.0.0.1',
-  process.env.NEXT_PUBLIC_APP_DOMAIN ?? '',
-].filter(Boolean))
+const APP_HOSTNAMES = new Set<string>(
+  ['localhost', '127.0.0.1', process.env.NEXT_PUBLIC_APP_DOMAIN ?? ''].filter(Boolean),
+)
 
 function isAppHost(hostname: string) {
   // strip port, then check exact match or .vercel.app / .ngrok suffix

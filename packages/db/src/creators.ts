@@ -1,12 +1,4 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  integer,
-  boolean,
-  index,
-  uniqueIndex,
-} from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, integer, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core'
 
 // ─── Platforms — available link platforms (admin-managed) ────────────────────
 
@@ -20,10 +12,18 @@ export const platform = pgTable(
     color: text('color').notNull(),
     baseUrl: text('base_url').notNull(),
     /** Sort position in lists */
-    sortOrder: integer('sort_order').$defaultFn(() => 0).notNull(),
-    active: boolean('active').$defaultFn(() => true).notNull(),
-    createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
-    updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
+    sortOrder: integer('sort_order')
+      .$defaultFn(() => 0)
+      .notNull(),
+    active: boolean('active')
+      .$defaultFn(() => true)
+      .notNull(),
+    createdAt: timestamp('created_at')
+      .$defaultFn(() => new Date())
+      .notNull(),
+    updatedAt: timestamp('updated_at')
+      .$defaultFn(() => new Date())
+      .notNull(),
   },
   (t) => [uniqueIndex('platform_key_idx').on(t.key)],
 )
@@ -46,17 +46,27 @@ export const creator = pgTable(
     bio: text('bio'),
     avatarUrl: text('avatar_url'),
     /** Neon accent used by the public page */
-    accentColor: text('accent_color').$defaultFn(() => '#ec4899').notNull(),
+    accentColor: text('accent_color')
+      .$defaultFn(() => '#ec4899')
+      .notNull(),
     /** Custom domain the creator owns, e.g. "amanda-zarayeva.com" */
     customDomain: text('custom_domain').unique(),
     /** Stripe Connect (Express) account id, e.g. "acct_..." — null until connected */
     stripeAccountId: text('stripe_account_id').unique(),
     /** True once charges & payouts are enabled on the connected account */
-    stripeOnboarded: boolean('stripe_onboarded').$defaultFn(() => false).notNull(),
+    stripeOnboarded: boolean('stripe_onboarded')
+      .$defaultFn(() => false)
+      .notNull(),
     /** 'live' | 'draft' */
-    status: text('status').$defaultFn(() => 'draft').notNull(),
-    createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
-    updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
+    status: text('status')
+      .$defaultFn(() => 'draft')
+      .notNull(),
+    createdAt: timestamp('created_at')
+      .$defaultFn(() => new Date())
+      .notNull(),
+    updatedAt: timestamp('updated_at')
+      .$defaultFn(() => new Date())
+      .notNull(),
   },
   (t) => [index('creator_user_idx').on(t.userId)],
 )
@@ -76,9 +86,15 @@ export const creatorLink = pgTable(
     label: text('label'),
     /** Destination URL the click redirects to */
     url: text('url').notNull(),
-    sortOrder: integer('sort_order').$defaultFn(() => 0).notNull(),
-    active: boolean('active').$defaultFn(() => true).notNull(),
-    createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
+    sortOrder: integer('sort_order')
+      .$defaultFn(() => 0)
+      .notNull(),
+    active: boolean('active')
+      .$defaultFn(() => true)
+      .notNull(),
+    createdAt: timestamp('created_at')
+      .$defaultFn(() => new Date())
+      .notNull(),
   },
   (t) => [index('creator_link_creator_idx').on(t.creatorId)],
 )
@@ -99,7 +115,9 @@ export const linkClick = pgTable(
     referrer: text('referrer'),
     country: text('country'),
     userAgent: text('user_agent'),
-    createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
+    createdAt: timestamp('created_at')
+      .$defaultFn(() => new Date())
+      .notNull(),
   },
   (t) => [
     index('link_click_creator_created_idx').on(t.creatorId, t.createdAt),
@@ -123,16 +141,26 @@ export const vipPlan = pgTable(
     /** Price in cents, in `currency` */
     amount: integer('amount').notNull(),
     /** ISO 4217, e.g. "usd", "brl" */
-    currency: text('currency').$defaultFn(() => 'usd').notNull(),
+    currency: text('currency')
+      .$defaultFn(() => 'usd')
+      .notNull(),
     /** Billing period in days, e.g. 30 (monthly), 90 (quarterly), 365 (annual) */
-    intervalDay: integer('interval_day').$defaultFn(() => 30).notNull(),
+    intervalDay: integer('interval_day')
+      .$defaultFn(() => 30)
+      .notNull(),
     /** Stripe Price id on the creator's connected account, e.g. "price_..." */
     stripePriceId: text('stripe_price_id'),
     /** NOWPayments subscription plan id (optional crypto track) */
     nowpaymentsPlanId: text('nowpayments_plan_id'),
-    active: boolean('active').$defaultFn(() => true).notNull(),
-    createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
-    updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
+    active: boolean('active')
+      .$defaultFn(() => true)
+      .notNull(),
+    createdAt: timestamp('created_at')
+      .$defaultFn(() => new Date())
+      .notNull(),
+    updatedAt: timestamp('updated_at')
+      .$defaultFn(() => new Date())
+      .notNull(),
   },
   (t) => [index('vip_plan_creator_idx').on(t.creatorId)],
 )
@@ -161,11 +189,17 @@ export const vipSubscription = pgTable(
     /** NOWPayments subscription id (crypto rail) */
     nowpaymentsSubscriptionId: text('nowpayments_subscription_id').unique(),
     /** 'active' | 'past_due' | 'canceled' | 'expired' */
-    status: text('status').$defaultFn(() => 'active').notNull(),
+    status: text('status')
+      .$defaultFn(() => 'active')
+      .notNull(),
     /** When the current paid period ends — access granted until here */
     currentPeriodEnd: timestamp('current_period_end'),
-    createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
-    updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
+    createdAt: timestamp('created_at')
+      .$defaultFn(() => new Date())
+      .notNull(),
+    updatedAt: timestamp('updated_at')
+      .$defaultFn(() => new Date())
+      .notNull(),
   },
   (t) => [
     index('vip_subscription_creator_idx').on(t.creatorId),

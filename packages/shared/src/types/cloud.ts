@@ -1,9 +1,4 @@
-export type InstanceStatus =
-  | 'RUNNING'
-  | 'STOPPED'
-  | 'STARTING'
-  | 'STOPPING'
-  | 'UNKNOWN'
+export type InstanceStatus = 'RUNNING' | 'STOPPED' | 'STARTING' | 'STOPPING' | 'UNKNOWN'
 
 export type GPUMetrics = {
   vramUsedGB: number

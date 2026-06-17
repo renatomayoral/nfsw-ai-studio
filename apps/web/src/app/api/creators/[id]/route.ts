@@ -15,10 +15,7 @@ async function ownedCreator(id: string, userId: string) {
 
 // ─── GET /api/creators/[id] — full detail + 14d series + per-platform totals ──
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({ headers: req.headers })
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -36,10 +33,7 @@ export async function GET(
       .select({ linkId: linkClick.linkId, n: sql<number>`count(*)::int` })
       .from(linkClick)
       .where(
-        and(
-          eq(linkClick.creatorId, id),
-          gte(linkClick.createdAt, sql`now() - interval '30 days'`),
-        ),
+        and(eq(linkClick.creatorId, id), gte(linkClick.createdAt, sql`now() - interval '30 days'`)),
       )
       .groupBy(linkClick.linkId),
     db
@@ -49,10 +43,7 @@ export async function GET(
       })
       .from(linkClick)
       .where(
-        and(
-          eq(linkClick.creatorId, id),
-          gte(linkClick.createdAt, sql`now() - interval '14 days'`),
-        ),
+        and(eq(linkClick.creatorId, id), gte(linkClick.createdAt, sql`now() - interval '14 days'`)),
       )
       .groupBy(sql`1`),
   ])
@@ -115,14 +106,14 @@ const patchSchema = z.object({
   handle: z.string().max(60).nullable().optional(),
   bio: z.string().max(280).nullable().optional(),
   avatarUrl: z.string().url().nullable().optional(),
-  accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  accentColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .optional(),
   status: z.enum(['live', 'draft']).optional(),
 })
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({ headers: req.headers })
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -145,10 +136,7 @@ export async function PATCH(
 
 // ─── DELETE /api/creators/[id] ───────────────────────────────────────────────
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({ headers: req.headers })
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

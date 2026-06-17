@@ -16,9 +16,7 @@ export default function LoginPage() {
           🎬 Creators Link
         </Link>
         <h1 className="mt-4 text-xl font-semibold text-white">Welcome back</h1>
-        <p className="mt-2 text-sm text-zinc-400">
-          Sign in to access your AI generation studio
-        </p>
+        <p className="mt-2 text-sm text-zinc-400">Sign in to access your AI generation studio</p>
       </div>
 
       {/* Card */}
@@ -28,7 +26,7 @@ export default function LoginPage() {
         <div className="mt-6 text-center">
           <p className="text-xs text-zinc-500">
             By signing in, you agree to our{' '}
-            <Link href="#" className="text-zinc-400 underline hover:text-white transition-colors">
+            <Link href="#" className="text-zinc-400 underline transition-colors hover:text-white">
               Terms of Service
             </Link>{' '}
             and confirm you are 18+.
@@ -38,7 +36,7 @@ export default function LoginPage() {
 
       {/* Back to home */}
       <div className="mt-6 text-center">
-        <Link href="/" className="text-sm text-zinc-500 hover:text-zinc-400 transition-colors">
+        <Link href="/" className="text-sm text-zinc-500 transition-colors hover:text-zinc-400">
           ← Back to home
         </Link>
       </div>

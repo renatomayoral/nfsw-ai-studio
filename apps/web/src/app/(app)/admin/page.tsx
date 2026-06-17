@@ -30,29 +30,31 @@ export default function AdminPage() {
       <div className="flex items-end justify-between">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight">Dashboard</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Visão geral da plataforma</p>
+          <p className="text-muted-foreground mt-1 text-sm">Visão geral da plataforma</p>
         </div>
         <Button onClick={() => router.push('/creators')}>Gerenciar criadoras</Button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map(({ label, value, icon: Icon }) => (
-          <div key={label} className="rounded-2xl border bg-card p-4.5">
+          <div key={label} className="bg-card rounded-2xl border p-4.5">
             <div className="flex items-center justify-between">
-              <span className="text-[13px] font-medium text-muted-foreground">{label}</span>
-              <Icon className="h-4 w-4 text-muted-foreground/60" />
+              <span className="text-muted-foreground text-[13px] font-medium">{label}</span>
+              <Icon className="text-muted-foreground/60 h-4 w-4" />
             </div>
-            <div className="mt-2.5 text-[28px] font-extrabold leading-tight">{value}</div>
+            <div className="mt-2.5 text-[28px] leading-tight font-extrabold">{value}</div>
           </div>
         ))}
       </div>
 
       {creators.length === 0 && (
-        <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border bg-card py-20 text-center">
-          <Users className="h-12 w-12 text-muted-foreground/30" />
+        <div className="bg-card flex flex-col items-center justify-center gap-4 rounded-2xl border py-20 text-center">
+          <Users className="text-muted-foreground/30 h-12 w-12" />
           <div>
             <p className="font-semibold">Nenhuma criadora ainda</p>
-            <p className="mt-1 text-sm text-muted-foreground">Crie a primeira página de links para começar a rastrear cliques.</p>
+            <p className="text-muted-foreground mt-1 text-sm">
+              Crie a primeira página de links para começar a rastrear cliques.
+            </p>
           </div>
           <Button onClick={() => router.push('/creators')}>Criar primeira criadora</Button>
         </div>

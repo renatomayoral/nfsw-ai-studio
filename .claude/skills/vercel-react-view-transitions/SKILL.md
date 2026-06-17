@@ -4,7 +4,7 @@ description: Guide for implementing smooth, native-feeling animations using Reac
 license: MIT
 metadata:
   author: vercel
-  version: "1.0.0"
+  version: '1.0.0'
 ---
 
 # React View Transitions
@@ -59,11 +59,11 @@ When adding view transitions to an existing app, **follow `references/implementa
 ### The `<ViewTransition>` Component
 
 ```jsx
-import { ViewTransition } from "react";
+import { ViewTransition } from 'react'
 
-<ViewTransition>
+;<ViewTransition>
   <Component />
-</ViewTransition>;
+</ViewTransition>
 ```
 
 React auto-assigns a unique `view-transition-name` and calls `document.startViewTransition` behind the scenes. Never call `startViewTransition` yourself.
@@ -106,12 +106,7 @@ Only `startTransition`, `useDeferredValue`, or `Suspense` activate VTs. Regular 
 Values: `"auto"` (browser cross-fade), `"none"` (disabled), `"class-name"` (custom CSS), or `{ [type]: value }` for type-specific animations.
 
 ```jsx
-<ViewTransition
-  default="none"
-  enter="slide-in"
-  exit="slide-out"
-  share="morph"
-/>
+<ViewTransition default="none" enter="slide-in" exit="slide-out" share="morph" />
 ```
 
 If `default` is `"none"`, all triggers are off unless explicitly listed.
@@ -133,10 +128,10 @@ Tag transitions with `addTransitionType` so VTs can pick different animations ba
 
 ```jsx
 startTransition(() => {
-  addTransitionType("nav-forward");
-  addTransitionType("select-item");
-  router.push("/detail/1");
-});
+  addTransitionType('nav-forward')
+  addTransitionType('select-item')
+  router.push('/detail/1')
+})
 ```
 
 Pass an object to map types to CSS classes. Works on `enter`, `exit`, **and** `share`:
@@ -144,19 +139,19 @@ Pass an object to map types to CSS classes. Works on `enter`, `exit`, **and** `s
 ```jsx
 <ViewTransition
   enter={{
-    "nav-forward": "slide-from-right",
-    "nav-back": "slide-from-left",
-    default: "none",
+    'nav-forward': 'slide-from-right',
+    'nav-back': 'slide-from-left',
+    default: 'none',
   }}
   exit={{
-    "nav-forward": "slide-to-left",
-    "nav-back": "slide-to-right",
-    default: "none",
+    'nav-forward': 'slide-to-left',
+    'nav-back': 'slide-to-right',
+    default: 'none',
   }}
   share={{
-    "nav-forward": "morph-forward",
-    "nav-back": "morph-back",
-    default: "morph",
+    'nav-forward': 'morph-forward',
+    'nav-back': 'morph-back',
+    default: 'morph',
   }}
   default="none"
 >
@@ -233,7 +228,7 @@ Same `name` on two VTs — one unmounting, one mounting — creates a shared ele
     <ViewTransition enter="fade-in" exit="fade-out">
       <Panel />
     </ViewTransition>
-  );
+  )
 }
 ```
 
@@ -245,7 +240,7 @@ Same `name` on two VTs — one unmounting, one mounting — creates a shared ele
     <ViewTransition key={item.id}>
       <ItemCard item={item} />
     </ViewTransition>
-  ));
+  ))
 }
 ```
 
@@ -259,18 +254,18 @@ Shared elements and list identity are independent concerns — don't confuse one
 {
   items.map((item) => (
     <ViewTransition key={item.id}>
-      {" "}
+      {' '}
       {/* list identity */}
       <Link href={`/items/${item.id}`}>
         <ViewTransition name={`item-image-${item.id}`} share="morph">
-          {" "}
+          {' '}
           {/* shared element */}
           <Image src={item.image} />
         </ViewTransition>
         <p>{item.name}</p>
       </Link>
     </ViewTransition>
-  ));
+  ))
 }
 ```
 

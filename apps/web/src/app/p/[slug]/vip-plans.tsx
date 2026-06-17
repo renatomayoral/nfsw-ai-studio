@@ -47,7 +47,10 @@ export function VipPlans({ plans, accent }: { plans: PublicVipPlan[]; accent: st
 
   return (
     <div className="mt-7 text-left">
-      <div className="mb-3 flex items-center gap-2 text-[12.5px] font-bold uppercase tracking-wider" style={{ color: accent }}>
+      <div
+        className="mb-3 flex items-center gap-2 text-[12.5px] font-bold tracking-wider uppercase"
+        style={{ color: accent }}
+      >
         Assinatura VIP
       </div>
       <div className="flex flex-col gap-2.5">
@@ -64,7 +67,11 @@ export function VipPlans({ plans, accent }: { plans: PublicVipPlan[]; accent: st
           >
             <div>
               <div className="text-[15.5px] font-extrabold text-white">{p.title}</div>
-              {p.description && <div className="text-[12.5px]" style={{ color: '#d4b8e8' }}>{p.description}</div>}
+              {p.description && (
+                <div className="text-[12.5px]" style={{ color: '#d4b8e8' }}>
+                  {p.description}
+                </div>
+              )}
             </div>
             <div className="text-right">
               <div className="text-[15px] font-black text-white">{price(p.amount, p.currency)}</div>

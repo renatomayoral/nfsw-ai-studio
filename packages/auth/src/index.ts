@@ -27,7 +27,7 @@ export const auth = betterAuth({
         plans: Object.entries(PLANS)
           .filter(([, p]) => p.priceId && p.priceId !== 'price_')
           .map(([key, p]) => ({
-            name: key,          // 'spark' | 'creator' | 'pro'
+            name: key, // 'spark' | 'creator' | 'pro'
             priceId: p.priceId,
           })),
       },

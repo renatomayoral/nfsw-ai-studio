@@ -7,18 +7,28 @@ export const user = pgTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
-  emailVerified: boolean('email_verified').$defaultFn(() => false).notNull(),
+  emailVerified: boolean('email_verified')
+    .$defaultFn(() => false)
+    .notNull(),
   image: text('image'),
-  createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
-  updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
+  createdAt: timestamp('created_at')
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp('updated_at')
+    .$defaultFn(() => new Date())
+    .notNull(),
 })
 
 export const session = pgTable('session', {
   id: text('id').primaryKey(),
   expiresAt: timestamp('expires_at').notNull(),
   token: text('token').notNull().unique(),
-  createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
-  updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
+  createdAt: timestamp('created_at')
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp('updated_at')
+    .$defaultFn(() => new Date())
+    .notNull(),
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
   userId: text('user_id')
@@ -39,8 +49,12 @@ export const account = pgTable('account', {
   accessTokenExpiresAt: timestamp('access_token_expires_at'),
   scope: text('scope'),
   password: text('password'),
-  createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
-  updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
+  createdAt: timestamp('created_at')
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp('updated_at')
+    .$defaultFn(() => new Date())
+    .notNull(),
 })
 
 export const verification = pgTable('verification', {
@@ -67,8 +81,12 @@ export const subscription = pgTable('subscription', {
   seats: text('seats'),
   trialStart: timestamp('trial_start'),
   trialEnd: timestamp('trial_end'),
-  createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
-  updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
+  createdAt: timestamp('created_at')
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp('updated_at')
+    .$defaultFn(() => new Date())
+    .notNull(),
 })
 
 // ─── User profile — extra metadata not managed by Better Auth ────────────────
@@ -78,9 +96,15 @@ export const userProfile = pgTable('user_profile', {
     .primaryKey()
     .references(() => user.id, { onDelete: 'cascade' }),
   /** One-time welcome video perk for free accounts */
-  welcomeVideoUsed: boolean('welcome_video_used').$defaultFn(() => false).notNull(),
-  createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
-  updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
+  welcomeVideoUsed: boolean('welcome_video_used')
+    .$defaultFn(() => false)
+    .notNull(),
+  createdAt: timestamp('created_at')
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp('updated_at')
+    .$defaultFn(() => new Date())
+    .notNull(),
 })
 
 // ─── Daily usage quota per authenticated user ─────────────────────────────────
@@ -96,15 +120,27 @@ export const usageQuota = pgTable(
     /** ISO date string YYYY-MM-DD — natural daily reset key */
     date: date('date').notNull(),
     /** Fast-queue image generations used today */
-    imagesFast: integer('images_fast').$defaultFn(() => 0).notNull(),
+    imagesFast: integer('images_fast')
+      .$defaultFn(() => 0)
+      .notNull(),
     /** Slow-queue image generations used today (for stats only, no hard cap) */
-    imagesSlow: integer('images_slow').$defaultFn(() => 0).notNull(),
+    imagesSlow: integer('images_slow')
+      .$defaultFn(() => 0)
+      .notNull(),
     /** Fast-queue video generations used today */
-    videosFast: integer('videos_fast').$defaultFn(() => 0).notNull(),
+    videosFast: integer('videos_fast')
+      .$defaultFn(() => 0)
+      .notNull(),
     /** Slow-queue video generations used today */
-    videosSlow: integer('videos_slow').$defaultFn(() => 0).notNull(),
-    createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
-    updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
+    videosSlow: integer('videos_slow')
+      .$defaultFn(() => 0)
+      .notNull(),
+    createdAt: timestamp('created_at')
+      .$defaultFn(() => new Date())
+      .notNull(),
+    updatedAt: timestamp('updated_at')
+      .$defaultFn(() => new Date())
+      .notNull(),
   },
   (t) => [uniqueIndex('usage_quota_user_date_idx').on(t.userId, t.date)],
 )
@@ -122,11 +158,19 @@ export const anonymousSession = pgTable('anonymous_session', {
   /** ISO date string YYYY-MM-DD for daily reset */
   date: date('date').notNull(),
   /** Images generated today */
-  imagesCount: integer('images_count').$defaultFn(() => 0).notNull(),
+  imagesCount: integer('images_count')
+    .$defaultFn(() => 0)
+    .notNull(),
   /** Whether the one-time welcome video has been consumed */
-  welcomeVideoUsed: boolean('welcome_video_used').$defaultFn(() => false).notNull(),
-  createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
-  updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
+  welcomeVideoUsed: boolean('welcome_video_used')
+    .$defaultFn(() => false)
+    .notNull(),
+  createdAt: timestamp('created_at')
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp('updated_at')
+    .$defaultFn(() => new Date())
+    .notNull(),
 })
 
 // ─── Schema export ────────────────────────────────────────────────────────────

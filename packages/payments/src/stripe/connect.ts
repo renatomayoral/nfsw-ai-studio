@@ -41,9 +41,7 @@ export type OnboardingLinkParams = {
 }
 
 /** Generates a one-time URL for the creator to complete KYC/onboarding. */
-export async function createOnboardingLink(
-  params: OnboardingLinkParams,
-): Promise<string> {
+export async function createOnboardingLink(params: OnboardingLinkParams): Promise<string> {
   const link = await getStripe().accountLinks.create({
     account: params.accountId,
     refresh_url: params.refreshUrl,
@@ -107,15 +105,8 @@ export async function createVipPrice(params: CreateVipPriceParams): Promise<stri
 }
 
 /** Deactivates a Price on the connected account (Prices can't be deleted). */
-export async function archiveVipPrice(
-  creatorAccountId: string,
-  priceId: string,
-): Promise<void> {
-  await getStripe().prices.update(
-    priceId,
-    { active: false },
-    { stripeAccount: creatorAccountId },
-  )
+export async function archiveVipPrice(creatorAccountId: string, priceId: string): Promise<void> {
+  await getStripe().prices.update(priceId, { active: false }, { stripeAccount: creatorAccountId })
 }
 
 export type SubscriptionCheckoutParams = {

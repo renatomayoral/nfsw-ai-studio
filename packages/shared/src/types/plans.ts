@@ -100,10 +100,10 @@ export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
 // Maps the 'plan' string stored in the subscription table to our tier system.
 export const STRIPE_PLAN_TO_TIER: Record<string, PlanTier> = {
   spark: 'spark',
-  starter: 'spark',   // legacy name
+  starter: 'spark', // legacy name
   creator: 'creator',
   pro: 'pro',
-  studio: 'pro',      // legacy name
+  studio: 'pro', // legacy name
   free: 'free',
 }
 
@@ -111,7 +111,7 @@ export const STRIPE_PLAN_TO_TIER: Record<string, PlanTier> = {
 export type PlanMeta = {
   tier: PlanTier
   label: string
-  price: number       // USD/month
+  price: number // USD/month
   priceAnnual: number // USD/month billed annually
   highlighted: boolean
   description: string

@@ -8,7 +8,7 @@ export default function SettingsPage() {
   const user = session?.user
 
   return (
-    <div className="max-w-xl mx-auto space-y-6">
+    <div className="mx-auto max-w-xl space-y-6">
       <h1 className="text-2xl font-extrabold tracking-tight">Configurações</h1>
 
       <Card>
@@ -22,17 +22,17 @@ export default function SettingsPage() {
               <img
                 src={user.image}
                 alt={user.name ?? ''}
-                className="h-14 w-14 rounded-full object-cover ring-2 ring-primary/20"
+                className="ring-primary/20 h-14 w-14 rounded-full object-cover ring-2"
                 referrerPolicy="no-referrer"
               />
             ) : (
-              <div className="h-14 w-14 rounded-full bg-primary/20 flex items-center justify-center text-xl font-bold text-primary">
+              <div className="bg-primary/20 text-primary flex h-14 w-14 items-center justify-center rounded-full text-xl font-bold">
                 {(user?.name ?? user?.email ?? 'U')[0]?.toUpperCase()}
               </div>
             )}
             <div>
               <p className="font-semibold">{user?.name ?? '—'}</p>
-              <p className="text-sm text-muted-foreground">{user?.email ?? '—'}</p>
+              <p className="text-muted-foreground text-sm">{user?.email ?? '—'}</p>
             </div>
           </div>
         </CardContent>

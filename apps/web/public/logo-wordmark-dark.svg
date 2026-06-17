@@ -1,0 +1,19 @@
+<svg width="200" height="36" viewBox="0 0 200 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  
+  <rect width="36" height="36" rx="9" fill="url(#gi)"></rect>
+  <path d="M20 9C20 9 12 9 12 18C12 27 20 27 20 27" stroke="white" stroke-width="3" stroke-linecap="round" fill="none"></path>
+  <path d="M23 9L23 27" stroke="white" stroke-width="3" stroke-linecap="round" fill="none"></path>
+  <path d="M23 27L30 27" stroke="white" stroke-width="3" stroke-linecap="round" fill="none"></path>
+  <path d="M27.5 23L32 27.5L27.5 32" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+  
+  <text x="46" y="26" font-family="Inter,-apple-system,sans-serif" font-size="20" font-weight="900" letter-spacing="-0.5" fill="white">Creators</text>
+  <text x="141" y="26" font-family="Inter,-apple-system,sans-serif" font-size="20" font-weight="900" letter-spacing="-0.5" fill="url(#gt)">Link</text>
+  <defs>
+    <linearGradient id="gi" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7C3AED"></stop><stop offset="1" stop-color="#EC4899"></stop>
+    </linearGradient>
+    <linearGradient id="gt" x1="141" y1="0" x2="195" y2="36" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A78BFA"></stop><stop offset="1" stop-color="#F472B6"></stop>
+    </linearGradient>
+  </defs>
+</svg>

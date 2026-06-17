@@ -20,7 +20,10 @@ export async function POST(req: NextRequest) {
   }
 
   if (!ALLOWED_TYPES.includes(file.type)) {
-    return NextResponse.json({ error: 'Formato inválido. Use JPG, PNG, WEBP ou GIF.' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Formato inválido. Use JPG, PNG, WEBP ou GIF.' },
+      { status: 400 },
+    )
   }
 
   if (file.size > MAX_SIZE) {

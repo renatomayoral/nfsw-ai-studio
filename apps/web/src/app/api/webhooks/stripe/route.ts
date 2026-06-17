@@ -114,10 +114,7 @@ async function onInvoicePaid(invoice: Stripe.Invoice) {
     .where(eq(vipSubscription.stripeSubscriptionId, subscriptionId))
 }
 
-async function onSubscriptionEnded(
-  sub: Stripe.Subscription,
-  status: 'canceled' | 'expired',
-) {
+async function onSubscriptionEnded(sub: Stripe.Subscription, status: 'canceled' | 'expired') {
   await db
     .update(vipSubscription)
     .set({ status, updatedAt: new Date() })

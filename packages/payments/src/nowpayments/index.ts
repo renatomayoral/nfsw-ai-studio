@@ -16,7 +16,11 @@ import type {
 const DEFAULT_BASE_URL = 'https://api.nowpayments.io/v1'
 
 export class NowPaymentsError extends Error {
-  constructor(message: string, readonly status: number, readonly body: unknown) {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly body: unknown,
+  ) {
     super(message)
     this.name = 'NowPaymentsError'
   }
@@ -48,9 +52,10 @@ export class NowPaymentsClient {
     const data = text ? JSON.parse(text) : null
 
     if (!res.ok) {
-      const msg = (data && typeof data === 'object' && 'message' in data)
-        ? String((data as { message: unknown }).message)
-        : `NOWPayments ${method} ${path} failed`
+      const msg =
+        data && typeof data === 'object' && 'message' in data
+          ? String((data as { message: unknown }).message)
+          : `NOWPayments ${method} ${path} failed`
       throw new NowPaymentsError(msg, res.status, data)
     }
     return data as T
@@ -173,9 +178,10 @@ function sortObjectKeys(obj: Record<string, unknown>): Record<string, unknown> {
     .sort()
     .reduce<Record<string, unknown>>((acc, key) => {
       const value = obj[key]
-      acc[key] = value && typeof value === 'object' && !Array.isArray(value)
-        ? sortObjectKeys(value as Record<string, unknown>)
-        : value
+      acc[key] =
+        value && typeof value === 'object' && !Array.isArray(value)
+          ? sortObjectKeys(value as Record<string, unknown>)
+          : value
       return acc
     }, {})
 }

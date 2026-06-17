@@ -22,10 +22,7 @@ const domainSchema = z.object({
 
 // ─── PUT /api/creators/[id]/domain — set or clear custom domain ──────────────
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({ headers: req.headers })
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

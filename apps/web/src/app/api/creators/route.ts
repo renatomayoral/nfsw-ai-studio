@@ -28,16 +28,23 @@ export async function GET(req: NextRequest) {
     db
       .select({ creatorId: linkClick.creatorId, n: sql<number>`count(*)::int` })
       .from(linkClick)
-      .where(and(inArray(linkClick.creatorId, creatorIds), gte(linkClick.createdAt, sql`now() - interval '30 days'`)))
+      .where(
+        and(
+          inArray(linkClick.creatorId, creatorIds),
+          gte(linkClick.createdAt, sql`now() - interval '30 days'`),
+        ),
+      )
       .groupBy(linkClick.creatorId),
     db
       .select({ creatorId: linkClick.creatorId, n: sql<number>`count(*)::int` })
       .from(linkClick)
-      .where(and(
-        inArray(linkClick.creatorId, creatorIds),
-        gte(linkClick.createdAt, sql`now() - interval '60 days'`),
-        sql`${linkClick.createdAt} < now() - interval '30 days'`,
-      ))
+      .where(
+        and(
+          inArray(linkClick.creatorId, creatorIds),
+          gte(linkClick.createdAt, sql`now() - interval '60 days'`),
+          sql`${linkClick.createdAt} < now() - interval '30 days'`,
+        ),
+      )
       .groupBy(linkClick.creatorId),
     db
       .select({
@@ -46,10 +53,13 @@ export async function GET(req: NextRequest) {
         n: sql<number>`count(${linkClick.id})::int`,
       })
       .from(creatorLink)
-      .leftJoin(linkClick, and(
-        eq(linkClick.linkId, creatorLink.id),
-        gte(linkClick.createdAt, sql`now() - interval '30 days'`),
-      ))
+      .leftJoin(
+        linkClick,
+        and(
+          eq(linkClick.linkId, creatorLink.id),
+          gte(linkClick.createdAt, sql`now() - interval '30 days'`),
+        ),
+      )
       .where(inArray(creatorLink.creatorId, creatorIds))
       .groupBy(creatorLink.creatorId, creatorLink.platform),
     db
@@ -59,10 +69,12 @@ export async function GET(req: NextRequest) {
         n: sql<number>`count(*)::int`,
       })
       .from(linkClick)
-      .where(and(
-        inArray(linkClick.creatorId, creatorIds),
-        gte(linkClick.createdAt, sql`now() - interval '12 days'`),
-      ))
+      .where(
+        and(
+          inArray(linkClick.creatorId, creatorIds),
+          gte(linkClick.createdAt, sql`now() - interval '12 days'`),
+        ),
+      )
       .groupBy(linkClick.creatorId, sql`2`)
       .orderBy(linkClick.creatorId, sql`2`),
   ])
@@ -85,13 +97,17 @@ export async function GET(req: NextRequest) {
   const rows: CreatorListRow[] = creators.map((c) => {
     const clicks30d = curr30Map.get(c.id) ?? 0
     const prev30d = prev30Map.get(c.id) ?? 0
-    const change = prev30d === 0 ? (clicks30d > 0 ? 100 : 0) : Math.round(((clicks30d - prev30d) / prev30d) * 1000) / 10
+    const change =
+      prev30d === 0
+        ? clicks30d > 0
+          ? 100
+          : 0
+        : Math.round(((clicks30d - prev30d) / prev30d) * 1000) / 10
 
     const platforms = byPlatformMap.get(c.id) ?? []
     const top = [...platforms].sort((a, b) => (b.n ?? 0) - (a.n ?? 0))[0]
-    const topLink = top && (top.n ?? 0) > 0
-      ? { platform: top.platform, ...platformMeta(top.platform) }
-      : null
+    const topLink =
+      top && (top.n ?? 0) > 0 ? { platform: top.platform, ...platformMeta(top.platform) } : null
 
     const dayRows = trendMap.get(c.id) ?? []
     const counts = dayRows.map((r) => r.n)
@@ -110,7 +126,9 @@ export async function GET(req: NextRequest) {
       status: c.status as 'live' | 'draft',
       clicks30d,
       change,
-      topLink: topLink ? { platform: topLink.platform, label: topLink.label, color: topLink.color } : null,
+      topLink: topLink
+        ? { platform: topLink.platform, label: topLink.label, color: topLink.color }
+        : null,
       trend,
     }
   })
@@ -139,7 +157,11 @@ export async function POST(req: NextRequest) {
   const { name, handle, avatarUrl, platformKeys } = parsed.data
 
   // fetch active platforms from DB
-  const allPlatforms = await db.select().from(platform).where(eq(platform.active, true)).orderBy(asc(platform.sortOrder))
+  const allPlatforms = await db
+    .select()
+    .from(platform)
+    .where(eq(platform.active, true))
+    .orderBy(asc(platform.sortOrder))
 
   // filter to requested keys, or use all active platforms
   const chosen = platformKeys?.length

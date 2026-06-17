@@ -66,7 +66,14 @@ export default function PlatformsPage() {
 
   const openEdit = (p: Platform) => {
     setEditing(p)
-    setForm({ key: p.key, label: p.label, color: p.color, baseUrl: p.baseUrl, sortOrder: p.sortOrder, active: p.active })
+    setForm({
+      key: p.key,
+      label: p.label,
+      color: p.color,
+      baseUrl: p.baseUrl,
+      sortOrder: p.sortOrder,
+      active: p.active,
+    })
     setDialogOpen(true)
   }
 
@@ -90,7 +97,8 @@ export default function PlatformsPage() {
       void qc.invalidateQueries({ queryKey: ['platforms'] })
       toast({ title: editing ? 'Plataforma atualizada' : 'Plataforma criada' })
     },
-    onError: (e) => toast({ title: 'Erro', description: (e as Error).message, variant: 'destructive' }),
+    onError: (e) =>
+      toast({ title: 'Erro', description: (e as Error).message, variant: 'destructive' }),
   })
 
   const { mutate: toggleActive } = useMutation({
@@ -114,29 +122,38 @@ export default function PlatformsPage() {
     onError: () => toast({ title: 'Erro ao remover', variant: 'destructive' }),
   })
 
-  const isFormValid = form.key.length > 0 && form.label.length > 0 && /^#[0-9a-fA-F]{6}$/.test(form.color) && form.baseUrl.startsWith('http')
+  const isFormValid =
+    form.key.length > 0 &&
+    form.label.length > 0 &&
+    /^#[0-9a-fA-F]{6}$/.test(form.color) &&
+    form.baseUrl.startsWith('http')
 
   return (
     <div className="space-y-6">
       {/* header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <Link href="/creators" className="mb-2 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-3.5 w-3.5" />Voltar para Criadoras
+          <Link
+            href="/creators"
+            className="text-muted-foreground hover:text-foreground mb-2 inline-flex items-center gap-1.5 text-sm"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Voltar para Criadoras
           </Link>
           <h1 className="text-2xl font-extrabold tracking-tight">Plataformas</h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-1.5 text-sm">
             Gerencie as plataformas disponíveis para rastreio de links.
           </p>
         </div>
         <Button onClick={openCreate}>
-          <Plus className="mr-2 h-4 w-4" />Nova plataforma
+          <Plus className="mr-2 h-4 w-4" />
+          Nova plataforma
         </Button>
       </div>
 
       {/* table */}
-      <div className="rounded-2xl border bg-card">
-        <div className="grid grid-cols-[2rem_1fr_1fr_1.5fr_5rem_5rem_5rem] items-center gap-3 border-b px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="bg-card rounded-2xl border">
+        <div className="text-muted-foreground grid grid-cols-[2rem_1fr_1fr_1.5fr_5rem_5rem_5rem] items-center gap-3 border-b px-5 py-3 text-[11px] font-semibold tracking-wider uppercase">
           <div />
           <div>Chave</div>
           <div>Label</div>
@@ -149,13 +166,15 @@ export default function PlatformsPage() {
         {isLoading ? (
           <div className="space-y-px">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-14 animate-pulse bg-muted/40" />
+              <div key={i} className="bg-muted/40 h-14 animate-pulse" />
             ))}
           </div>
         ) : platforms.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
+          <div className="text-muted-foreground flex flex-col items-center justify-center gap-3 py-16">
             <p className="text-sm">Nenhuma plataforma cadastrada.</p>
-            <Button variant="outline" size="sm" onClick={openCreate}>Criar primeira plataforma</Button>
+            <Button variant="outline" size="sm" onClick={openCreate}>
+              Criar primeira plataforma
+            </Button>
           </div>
         ) : (
           platforms.map((p) => (
@@ -173,10 +192,10 @@ export default function PlatformsPage() {
               <span className="text-sm font-semibold">{p.label}</span>
 
               {/* baseUrl */}
-              <span className="truncate text-xs text-muted-foreground">{p.baseUrl}</span>
+              <span className="text-muted-foreground truncate text-xs">{p.baseUrl}</span>
 
               {/* sort order */}
-              <span className="text-sm text-muted-foreground">{p.sortOrder}</span>
+              <span className="text-muted-foreground text-sm">{p.sortOrder}</span>
 
               {/* active toggle */}
               <button
@@ -185,12 +204,12 @@ export default function PlatformsPage() {
               >
                 {p.active ? (
                   <>
-                    <ToggleRight className="h-4 w-4 text-primary" />
+                    <ToggleRight className="text-primary h-4 w-4" />
                     <span className="text-primary">Ativo</span>
                   </>
                 ) : (
                   <>
-                    <ToggleLeft className="h-4 w-4 text-muted-foreground" />
+                    <ToggleLeft className="text-muted-foreground h-4 w-4" />
                     <span className="text-muted-foreground">Inativo</span>
                   </>
                 )}
@@ -200,13 +219,13 @@ export default function PlatformsPage() {
               <div className="flex items-center justify-end gap-1.5">
                 <button
                   onClick={() => openEdit(p)}
-                  className="rounded p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  className="text-muted-foreground hover:bg-secondary hover:text-foreground rounded p-1.5"
                 >
                   <Pencil className="h-3.5 w-3.5" />
                 </button>
                 <button
                   onClick={() => setDeleteTarget(p)}
-                  className="rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded p-1.5"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -222,7 +241,9 @@ export default function PlatformsPage() {
           <DialogHeader>
             <DialogTitle>{editing ? 'Editar plataforma' : 'Nova plataforma'}</DialogTitle>
             <DialogDescription>
-              {editing ? 'Atualize os dados da plataforma.' : 'Preencha os dados para criar uma nova plataforma de rastreio.'}
+              {editing
+                ? 'Atualize os dados da plataforma.'
+                : 'Preencha os dados para criar uma nova plataforma de rastreio.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -230,11 +251,15 @@ export default function PlatformsPage() {
             <Field label="Chave (key)">
               <Input
                 value={form.key}
-                onChange={(e) => setForm((f) => ({ ...f, key: e.target.value.toLowerCase().replace(/\s/g, '-') }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, key: e.target.value.toLowerCase().replace(/\s/g, '-') }))
+                }
                 placeholder="ex: onlyfans"
                 disabled={!!editing}
               />
-              <p className="mt-1 text-xs text-muted-foreground">Identificador único. Não pode ser alterado depois de criado.</p>
+              <p className="text-muted-foreground mt-1 text-xs">
+                Identificador único. Não pode ser alterado depois de criado.
+              </p>
             </Field>
 
             <Field label="Label">
@@ -254,7 +279,12 @@ export default function PlatformsPage() {
                 />
               </Field>
               <div className="flex flex-col justify-end pb-0.5">
-                <div className="h-9 w-9 rounded-md border" style={{ background: /^#[0-9a-fA-F]{6}$/.test(form.color) ? form.color : 'transparent' }} />
+                <div
+                  className="h-9 w-9 rounded-md border"
+                  style={{
+                    background: /^#[0-9a-fA-F]{6}$/.test(form.color) ? form.color : 'transparent',
+                  }}
+                />
               </div>
             </div>
 
@@ -264,7 +294,9 @@ export default function PlatformsPage() {
                 onChange={(e) => setForm((f) => ({ ...f, baseUrl: e.target.value }))}
                 placeholder="https://onlyfans.com/"
               />
-              <p className="mt-1 text-xs text-muted-foreground">Prefixo usado ao gerar o link (ex: https://onlyfans.com/usuario).</p>
+              <p className="text-muted-foreground mt-1 text-xs">
+                Prefixo usado ao gerar o link (ex: https://onlyfans.com/usuario).
+              </p>
             </Field>
 
             <Field label="Ordem">
@@ -278,7 +310,9 @@ export default function PlatformsPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              Cancelar
+            </Button>
             <Button onClick={() => save()} disabled={isSaving || !isFormValid}>
               {isSaving ? 'Salvando…' : editing ? 'Salvar alterações' : 'Criar plataforma'}
             </Button>
@@ -292,7 +326,9 @@ export default function PlatformsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Remover plataforma?</AlertDialogTitle>
             <AlertDialogDescription>
-              A plataforma <strong>{deleteTarget?.label}</strong> será removida permanentemente. Links de criadoras que usam essa plataforma não serão afetados, mas a plataforma não estará mais disponível para novas criadoras.
+              A plataforma <strong>{deleteTarget?.label}</strong> será removida permanentemente.
+              Links de criadoras que usam essa plataforma não serão afetados, mas a plataforma não
+              estará mais disponível para novas criadoras.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

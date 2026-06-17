@@ -3,6 +3,7 @@
 Monorepo com Turborepo + Next.js 16 para gerenciar ambiente de geração de vídeo/imagem com IA no Google Cloud (ComfyUI + Wan 2.2 + FLUX.1), com suporte a RunPod como provider alternativo e persistência permanente de outputs via Google Cloud Storage.
 
 ## Projeto GCP
+
 - **Nome**: liberlaser > AI Studio
 - **Número**: 448251250847
 - **ID**: `mktia-ai-studio` ← usar SEMPRE em comandos gcloud
@@ -12,6 +13,7 @@ Monorepo com Turborepo + Next.js 16 para gerenciar ambiente de geração de víd
 - **Auth local**: `gcloud auth application-default login` (sem service account key file)
 
 ## GitHub
+
 - **Repo**: `renatomayoral/creators-link`
 - **Registry**: `ghcr.io/renatomayoral/creators-link:latest`
 
@@ -109,16 +111,16 @@ const RUNPOD_DEFAULTS = {
 // src/types/settings.ts
 export type AppSettings = {
   cloudProvider: 'gcp' | 'runpod'
-  gcpProjectId: string        // default: 'mktia-ai-studio'
-  gcpProjectNumber: string    // default: '448251250847'
+  gcpProjectId: string // default: 'mktia-ai-studio'
+  gcpProjectNumber: string // default: '448251250847'
   gcpInstanceName: string
-  gcpZone: string             // default: 'us-central1-a'
+  gcpZone: string // default: 'us-central1-a'
   runpodApiKey?: string
   runpodGpuType?: string
   runpodPodId?: string
-  runpodDockerImage?: string  // default: 'ghcr.io/renatomayoral/creators-link:latest'
-  gcsBucketName: string       // default: 'mktia-ai-studio-outputs'
-  autoUpload: boolean         // default: true
+  runpodDockerImage?: string // default: 'ghcr.io/renatomayoral/creators-link:latest'
+  gcsBucketName: string // default: 'mktia-ai-studio-outputs'
+  autoUpload: boolean // default: true
   hfToken: string
   autoShutdownHours: number | null
 }
@@ -204,21 +206,34 @@ export type BillingInfo = {
 ```
 
 RunPod usa GraphQL:
+
 ```graphql
 mutation {
-  podFindAndDeployOnDemand(input: {
-    name: "ai-studio"
-    imageName: "ghcr.io/renatomayoral/creators-link:latest"
-    gpuTypeId: "NVIDIA A100-SXM4-80GB"
-    cloudType: SECURE
-    gpuCount: 1
-    volumeInGb: 200
-    containerDiskInGb: 50
-    ports: "8188/http,22/tcp"
-    volumeMountPath: "/data"
-  }) {
-    id desiredStatus imageName costPerHr
-    runtime { ports { ip privatePort publicPort type } }
+  podFindAndDeployOnDemand(
+    input: {
+      name: "ai-studio"
+      imageName: "ghcr.io/renatomayoral/creators-link:latest"
+      gpuTypeId: "NVIDIA A100-SXM4-80GB"
+      cloudType: SECURE
+      gpuCount: 1
+      volumeInGb: 200
+      containerDiskInGb: 50
+      ports: "8188/http,22/tcp"
+      volumeMountPath: "/data"
+    }
+  ) {
+    id
+    desiredStatus
+    imageName
+    costPerHr
+    runtime {
+      ports {
+        ip
+        privatePort
+        publicPort
+        type
+      }
+    }
   }
 }
 ```
@@ -265,6 +280,7 @@ export function createWanI2VWorkflow(params: WanI2VParams): ComfyWorkflow
 ## apps/web — Páginas
 
 ### `/` Dashboard
+
 - Card status VM/Pod (badge Running/Stopped/Starting) + botões Iniciar/Parar/Reiniciar
 - Estimativa custo sessão ($x.xx/hora, total gasto)
 - Card Storage GCS: total files, tamanho, custo estimado ($0.02/GB/mês), link /library
@@ -272,6 +288,7 @@ export function createWanI2VWorkflow(params: WanI2VParams): ComfyWorkflow
 - GPU usage gauge via Progress (polling 5s)
 
 ### `/generate`
+
 - Tabs: "Imagem (FLUX)" | "Vídeo T2V (Wan 2.2)" | "Animar (Wan I2V)"
 - Textarea prompt, Sliders steps/cfg/seed/resolução
 - Button Gerar → ComfyUI via SSH tunnel
@@ -279,6 +296,7 @@ export function createWanI2VWorkflow(params: WanI2VParams): ComfyWorkflow
 - Dialog preview do resultado
 
 ### `/library`
+
 - Funciona com VM desligada (direto do GCS)
 - Grid imagens/vídeos com signed URLs
 - Badge provider (GCP / RunPod)
@@ -288,6 +306,7 @@ export function createWanI2VWorkflow(params: WanI2VParams): ComfyWorkflow
 - AlertDialog confirmação antes de deletar
 
 ### `/settings`
+
 - RadioGroup: "Google Cloud" | "RunPod"
 - Form condicional por provider (react-hook-form + zod)
   - GCP: Project ID (mktia-ai-studio), Project Number (448251250847), Instance Name, Zone (us-central1-f)
@@ -342,6 +361,7 @@ GET    /api/health                      Health check + ping ComfyUI
 - `scripts/vm/start_comfyui.sh`: detecta VRAM, inicia watcher GCS, lança ComfyUI (listen 127.0.0.1)
 
 SSH tunnel para acessar ComfyUI:
+
 ```bash
 gcloud compute ssh INSTANCE_NAME --project=mktia-486913 -- -L 8188:localhost:8188
 ```
@@ -350,14 +370,14 @@ gcloud compute ssh INSTANCE_NAME --project=mktia-486913 -- -L 8188:localhost:818
 
 ## Modelos (ficam em /data/models, ~100GB total)
 
-| Modelo | Path | Tamanho |
-|--------|------|---------|
-| Wan 2.2 T2V-A14B FP8 | diffusion_models/ | ~28GB |
-| Wan 2.2 I2V-A14B FP8 | diffusion_models/ | ~28GB |
-| FLUX.1-dev | unet/ | ~24GB |
-| T5-XXL FP16 | text_encoders/ | ~9GB |
-| CLIP-L | text_encoders/ | ~0.5GB |
-| VAE (ae) | vae/ | ~0.3GB |
+| Modelo               | Path              | Tamanho |
+| -------------------- | ----------------- | ------- |
+| Wan 2.2 T2V-A14B FP8 | diffusion_models/ | ~28GB   |
+| Wan 2.2 I2V-A14B FP8 | diffusion_models/ | ~28GB   |
+| FLUX.1-dev           | unet/             | ~24GB   |
+| T5-XXL FP16          | text_encoders/    | ~9GB    |
+| CLIP-L               | text_encoders/    | ~0.5GB  |
+| VAE (ae)             | vae/              | ~0.3GB  |
 
 ---
 
@@ -427,10 +447,13 @@ cd packages/db && pnpm drizzle-kit migrate
 ```
 
 **Problema conhecido:** o `drizzle-kit migrate` às vezes reporta "applied successfully" mas não executa o SQL nem registra a migration na tabela `drizzle.__drizzle_migrations`. Após rodar o migrate, sempre verificar:
+
 ```bash
 node --env-file=.env -e "import('postgres').then(async ({default:pg})=>{const sql=pg(process.env.DATABASE_URL);const m=await sql\`SELECT hash FROM drizzle.__drizzle_migrations ORDER BY created_at\`;console.log(m.map(r=>r.hash).join(', '));await sql.end()})"
 ```
+
 Se a migration não aparecer, aplicar o SQL manualmente e registrar na tabela:</p>
+
 ```sql
 -- Executar o SQL do arquivo .sql manualmente, depois:
 INSERT INTO drizzle.__drizzle_migrations (hash, created_at) VALUES ('0002_nome_da_migration', <timestamp_do_journal>);

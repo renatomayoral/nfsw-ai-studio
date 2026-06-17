@@ -17,17 +17,20 @@ const NS_PROVIDERS: { match: string; name: string }[] = [
 ]
 
 export async function GET(req: NextRequest) {
-  const domain = req.nextUrl.searchParams.get('domain')?.toLowerCase().replace(/^www\./, '')
+  const domain = req.nextUrl.searchParams
+    .get('domain')
+    ?.toLowerCase()
+    .replace(/^www\./, '')
   if (!domain || !/^([a-z0-9-]+\.)+[a-z]{2,}$/.test(domain)) {
     return NextResponse.json({ provider: null })
   }
 
   try {
-    const res = await fetch(
-      `https://cloudflare-dns.com/dns-query?name=${domain}&type=NS`,
-      { headers: { accept: 'application/dns-json' }, signal: AbortSignal.timeout(3000) },
-    )
-    const data = await res.json() as { Answer?: { data: string }[] }
+    const res = await fetch(`https://cloudflare-dns.com/dns-query?name=${domain}&type=NS`, {
+      headers: { accept: 'application/dns-json' },
+      signal: AbortSignal.timeout(3000),
+    })
+    const data = (await res.json()) as { Answer?: { data: string }[] }
     const ns = (data.Answer ?? []).map((r) => r.data.toLowerCase()).join(' ')
 
     const matched = NS_PROVIDERS.find((p) => ns.includes(p.match))

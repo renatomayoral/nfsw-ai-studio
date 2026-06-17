@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@repo/ui/lib/utils'
 import { LayoutDashboard, Users, Settings, LogOut } from 'lucide-react'
@@ -26,8 +27,14 @@ export function Navigation() {
     <nav className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-40">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex h-14 items-center gap-6">
-          <Link href="/admin" className="font-bold text-lg text-primary">
-            CreatorsLink
+          <Link href="/admin" className="flex items-center shrink-0">
+            <Image
+              src="/logo-wordmark-dark.svg"
+              alt="CreatorsLink"
+              width={160}
+              height={29}
+              priority
+            />
           </Link>
           <div className="flex items-center gap-1 flex-1">
             {navItems.map(({ href, label, icon: Icon }) => (

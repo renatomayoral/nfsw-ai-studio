@@ -9,9 +9,7 @@ export const AppSettingsSchema = z.object({
   runpodApiKey: z.string().optional(),
   runpodGpuType: z.string().optional(),
   runpodPodId: z.string().optional(),
-  runpodDockerImage: z
-    .string()
-    .default('ghcr.io/renatomayoral/creators-link:latest'),
+  runpodDockerImage: z.string().default('ghcr.io/renatomayoral/creators-link:latest'),
   gcsBucketName: z.string().default('mktia-ai-studio-outputs'),
   autoUpload: z.boolean().default(true),
   hfToken: z.string(),

@@ -42,7 +42,12 @@ export async function PATCH(
   }
 
   // Deactivating archives the Stripe Price so it can no longer be subscribed to.
-  if (parsed.data.active === false && owned.plan.active && owned.plan.stripePriceId && owned.creator.stripeAccountId) {
+  if (
+    parsed.data.active === false &&
+    owned.plan.active &&
+    owned.plan.stripePriceId &&
+    owned.creator.stripeAccountId
+  ) {
     try {
       await archiveVipPrice(owned.creator.stripeAccountId, owned.plan.stripePriceId)
     } catch (err) {

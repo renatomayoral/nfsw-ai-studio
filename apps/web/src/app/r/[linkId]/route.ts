@@ -9,10 +9,7 @@ const { creatorLink, linkClick } = schema
 // This is the URL every button on a public /p/[slug] page points to, so each
 // outbound tap is attributed to a (creator, link) pair.
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ linkId: string }> },
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ linkId: string }> }) {
   const { linkId } = await params
 
   const link = await db.query.creatorLink.findFirst({
