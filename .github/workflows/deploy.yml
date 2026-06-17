@@ -29,18 +29,17 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v2
 
-      # With Workload Identity Federation the gcloud quota/billing project must
-      # be set explicitly, otherwise serviceusage.services.use checks fail with
-      # "forbidden from accessing the bucket [..._cloudbuild]".
-      - name: Configure gcloud quota project
-        run: gcloud config set billing/quota_project $PROJECT_ID
+      # Build on the runner and push straight to Artifact Registry. This avoids
+      # `gcloud builds submit`, which (with a custom WIF service account) fails
+      # the serviceusage.services.use check on the _cloudbuild staging bucket.
+      - name: Authenticate Docker to Artifact Registry
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
-      - name: Build & push via Cloud Build
+      - name: Build & push image
         run: |
-          gcloud builds submit \
-            --tag $IMAGE:${{ github.sha }} \
-            --project $PROJECT_ID \
-            .
+          docker build -t $IMAGE:${{ github.sha }} -t $IMAGE:latest .
+          docker push $IMAGE:${{ github.sha }}
+          docker push $IMAGE:latest
 
       - name: Deploy to Cloud Run
         run: |
