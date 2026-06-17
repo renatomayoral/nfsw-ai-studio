@@ -29,6 +29,13 @@ export const metadata: Metadata = {
   authors: [{ name: 'Creators Link' }],
   creator: 'Creators Link',
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.svg', sizes: 'any' },
+    ],
+    apple: '/favicon.svg',
+  },
   openGraph: {
     type: 'website',
     locale: 'pt_BR',

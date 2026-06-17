@@ -144,23 +144,8 @@ export default function LandingPage() {
               textDecoration: 'none',
             }}
           >
-            <span
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: 9,
-                background: `linear-gradient(135deg,${ACCENT},#7c3aed)`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: `0 6px 18px -6px ${ACCENT}`,
-              }}
-            >
-              <IconLink />
-            </span>
-            <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-.02em' }}>
-              CreatorsLink
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-wordmark-dark.svg" alt="Creators Link" height={28} style={{ height: 28, width: 'auto' }} />
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
             {[
@@ -1798,20 +1783,8 @@ export default function LandingPage() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-            <span
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: 8,
-                background: `linear-gradient(135deg,${ACCENT},#7c3aed)`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <IconLink />
-            </span>
-            <span style={{ fontSize: 15, fontWeight: 800 }}>CreatorsLink</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-wordmark-dark.svg" alt="Creators Link" height={24} style={{ height: 24, width: 'auto' }} />
           </div>
           <div style={{ display: 'flex', gap: 22, fontSize: 13.5, color: '#94a3b8' }}>
             {[
