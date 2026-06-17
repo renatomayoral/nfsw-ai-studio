@@ -1477,13 +1477,16 @@ export default function LandingPage() {
               padding: 30,
             }}
           >
-            <div style={{ fontSize: 15, fontWeight: 700 }}>Starter</div>
+            <div style={{ fontSize: 15, fontWeight: 700 }}>Free (O Funil de Atração)</div>
             <div style={{ marginTop: 14, display: 'flex', alignItems: 'baseline', gap: 6 }}>
-              <span style={{ fontSize: 40, fontWeight: 900, letterSpacing: '-.02em' }}>R$0</span>
+              <span style={{ fontSize: 40, fontWeight: 900, letterSpacing: '-.02em' }}>$0</span>
               <span style={{ fontSize: 14, color: '#64748b' }}>/mês</span>
             </div>
-            <p style={{ margin: '10px 0 0', fontSize: 13.5, color: '#94a3b8' }}>
-              Para começar e validar.
+            <div style={{ fontSize: 12.5, color: '#94a3b8', marginTop: 4, fontWeight: 600 }}>
+              Taxas: 9,9% + $0,30 por transação
+            </div>
+            <p style={{ margin: '10px 0 0', fontSize: 13.5, color: '#94a3b8', lineHeight: 1.5 }}>
+              Criadores iniciantes, quem está testando o bot do Telegram ou migrando de plataformas gratuitas (AllMyLinks).
             </p>
             <Link
               href="/login"
@@ -1513,7 +1516,11 @@ export default function LandingPage() {
                 color: '#cbd5e1',
               }}
             >
-              {['1 criadora', 'Até 3 plataformas', 'Analytics de 7 dias'].map((f) => (
+              {[
+                'Taxas: 9,9% + $0,30 por transação',
+                'Telegram Bot de Vendas',
+                'Marca CreatorsLink no link-in-bio e no bot',
+              ].map((f) => (
                 <span key={f} style={{ display: 'flex', gap: 9 }}>
                   <IconCheck />
                   {f}
@@ -1522,7 +1529,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Pro */}
+          {/* Creator / Growth */}
           <div
             style={{
               position: 'relative',
@@ -1549,15 +1556,18 @@ export default function LandingPage() {
                 whiteSpace: 'nowrap',
               }}
             >
-              MAIS POPULAR
+              DOCE PEDAÇO DO MEIO
             </span>
-            <div style={{ fontSize: 15, fontWeight: 700 }}>Pro</div>
+            <div style={{ fontSize: 15, fontWeight: 700 }}>Creator / Growth</div>
             <div style={{ marginTop: 14, display: 'flex', alignItems: 'baseline', gap: 6 }}>
-              <span style={{ fontSize: 40, fontWeight: 900, letterSpacing: '-.02em' }}>R$49</span>
+              <span style={{ fontSize: 40, fontWeight: 900, letterSpacing: '-.02em' }}>$19</span>
               <span style={{ fontSize: 14, color: '#94a3b8' }}>/mês</span>
             </div>
-            <p style={{ margin: '10px 0 0', fontSize: 13.5, color: '#cbd5e1' }}>
-              Para criadoras em ritmo de crescimento.
+            <div style={{ fontSize: 12.5, color: ACCENT, marginTop: 4, fontWeight: 600 }}>
+              Taxas: 6,9% + $0,30 por transação
+            </div>
+            <p style={{ margin: '10px 0 0', fontSize: 13.5, color: '#cbd5e1', lineHeight: 1.5 }}>
+              O criador que já vende toda semana, quer tirar a sua marca do perfil dele, mas ainda não fatura milhares de dólares para justificar o plano Pro.
             </p>
             <Link
               href="/login"
@@ -1575,7 +1585,7 @@ export default function LandingPage() {
                 boxShadow: `0 12px 26px -10px ${ACCENT}`,
               }}
             >
-              Assinar Pro
+              Assinar Creator / Growth
             </Link>
             <div style={{ height: 1, background: '#1e293b', margin: '22px 0' }} />
             <div
@@ -1588,11 +1598,11 @@ export default function LandingPage() {
               }}
             >
               {[
-                'Até 10 criadoras',
-                'Todas as plataformas',
-                'Analytics de 90 dias',
-                'Vendas e planos no Telegram',
-                'Domínio próprio',
+                'Taxas: 6,9% + $0,30 por transação',
+                'Sem marca da CreatorsLink no perfil',
+                'Domínio próprio personalizado',
+                'Telegram Bot ilimitado',
+                'Fixo fácil de cobrar e alta margem',
               ].map((f) => (
                 <span key={f} style={{ display: 'flex', gap: 9 }}>
                   <IconCheck color={ACCENT} />
@@ -1602,7 +1612,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Agência */}
+          {/* Pro / Scale */}
           <div
             style={{
               border: '1px solid #1e293b',
@@ -1611,13 +1621,16 @@ export default function LandingPage() {
               padding: 30,
             }}
           >
-            <div style={{ fontSize: 15, fontWeight: 700 }}>Agência</div>
+            <div style={{ fontSize: 15, fontWeight: 700 }}>Pro / Scale (Para os Tubarões)</div>
             <div style={{ marginTop: 14, display: 'flex', alignItems: 'baseline', gap: 6 }}>
-              <span style={{ fontSize: 40, fontWeight: 900, letterSpacing: '-.02em' }}>R$199</span>
+              <span style={{ fontSize: 40, fontWeight: 900, letterSpacing: '-.02em' }}>$79</span>
               <span style={{ fontSize: 14, color: '#64748b' }}>/mês</span>
             </div>
-            <p style={{ margin: '10px 0 0', fontSize: 13.5, color: '#94a3b8' }}>
-              Para quem gerencia muitos perfis.
+            <div style={{ fontSize: 12.5, color: '#94a3b8', marginTop: 4, fontWeight: 600 }}>
+              Taxas: 3,9% + $0,30 por transação
+            </div>
+            <p style={{ margin: '10px 0 0', fontSize: 13.5, color: '#94a3b8', lineHeight: 1.5 }}>
+              Grandes produtores de conteúdo, agências e criadores high-ticket que movimentam mais de $3.000/mês. Repasse quase puro da Stripe.
             </p>
             <a
               href="mailto:contato@creatorslink.org"
@@ -1635,7 +1648,7 @@ export default function LandingPage() {
                 textDecoration: 'none',
               }}
             >
-              Falar com vendas
+              Assinar Pro / Scale
             </a>
             <div style={{ height: 1, background: '#1e293b', margin: '22px 0' }} />
             <div
@@ -1648,10 +1661,11 @@ export default function LandingPage() {
               }}
             >
               {[
-                'Criadoras ilimitadas',
-                'Acesso multiusuário',
-                'Relatórios exportáveis',
-                'Suporte prioritário',
+                'Taxas: 3,9% + $0,30 por transação',
+                'Múltiplos bots e integrações CRM',
+                'Integrações com webhooks para CRM',
+                'Suporte prioritário 24/7',
+                'Ideal para faturamento > $3.000/mês',
               ].map((f) => (
                 <span key={f} style={{ display: 'flex', gap: 9 }}>
                   <IconCheck />
