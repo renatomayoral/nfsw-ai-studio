@@ -4,16 +4,20 @@ export type { Plan } from './plans.js'
 
 // ─── Stripe (fiat card subscriptions) ────────────────────────────────────────
 export { stripe, getStripe } from './stripe/index.js'
+export type { default as Stripe } from 'stripe'
 export {
   createConnectedAccount,
   createOnboardingLink,
   isAccountReady,
   createDashboardLink,
+  createVipPrice,
+  archiveVipPrice,
   createSubscriptionCheckout,
 } from './stripe/connect.js'
 export type {
   CreateConnectedAccountParams,
   OnboardingLinkParams,
+  CreateVipPriceParams,
   SubscriptionCheckoutParams,
 } from './stripe/connect.js'
 export {

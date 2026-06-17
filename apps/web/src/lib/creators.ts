@@ -67,6 +67,7 @@ export type CreatorDetail = {
   avatarUrl: string | null
   accentColor: string
   customDomain: string | null
+  stripeOnboarded: boolean
   status: 'live' | 'draft'
   totalClicks30d: number
   /** 14 daily click counts (oldest → today) */

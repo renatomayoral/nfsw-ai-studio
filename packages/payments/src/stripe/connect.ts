@@ -65,6 +65,59 @@ export async function createDashboardLink(accountId: string): Promise<string> {
   return link.url
 }
 
+export type CreateVipPriceParams = {
+  /** Connected account the product/price is created on. */
+  creatorAccountId: string
+  /** Plan title, e.g. "VIP Mensal". */
+  title: string
+  description?: string
+  /** Price in the smallest currency unit (cents). */
+  amount: number
+  /** ISO 4217, e.g. 'usd', 'brl'. */
+  currency: string
+  /** Billing period length in days (30, 90, 365). */
+  intervalDay: number
+}
+
+/**
+ * Creates a recurring Price (with its Product) on the creator's connected
+ * account. Returns the Price id to store on the vip_plan row.
+ *
+ * Stripe recurring intervals are day/week/month/year — we express everything
+ * as a day interval with a count so 30/90/365 map cleanly.
+ */
+export async function createVipPrice(params: CreateVipPriceParams): Promise<string> {
+  const stripe = getStripe()
+  const opts = { stripeAccount: params.creatorAccountId }
+
+  const product = await stripe.products.create(
+    { name: params.title, description: params.description },
+    opts,
+  )
+  const price = await stripe.prices.create(
+    {
+      product: product.id,
+      unit_amount: params.amount,
+      currency: params.currency,
+      recurring: { interval: 'day', interval_count: params.intervalDay },
+    },
+    opts,
+  )
+  return price.id
+}
+
+/** Deactivates a Price on the connected account (Prices can't be deleted). */
+export async function archiveVipPrice(
+  creatorAccountId: string,
+  priceId: string,
+): Promise<void> {
+  await getStripe().prices.update(
+    priceId,
+    { active: false },
+    { stripeAccount: creatorAccountId },
+  )
+}
+
 export type SubscriptionCheckoutParams = {
   /** Connected account of the creator receiving the money. */
   creatorAccountId: string
