@@ -13,7 +13,7 @@ export default function LoginPage() {
       {/* Logo */}
       <div className="mb-8 text-center">
         <Link href="/" className="inline-block text-2xl font-bold text-white">
-          🎬 AI Studio
+          🎬 Creators Link
         </Link>
         <h1 className="mt-4 text-xl font-semibold text-white">Welcome back</h1>
         <p className="mt-2 text-sm text-zinc-400">

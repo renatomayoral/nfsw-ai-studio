@@ -7,9 +7,9 @@ steps:
     args:
       - build
       - '--file=apps/web/Dockerfile'
-      - '--tag=us-central1-docker.pkg.dev/$PROJECT_ID/ai-studio/web:$SHORT_SHA'
-      - '--tag=us-central1-docker.pkg.dev/$PROJECT_ID/ai-studio/web:latest'
-      - '--cache-from=us-central1-docker.pkg.dev/$PROJECT_ID/ai-studio/web:latest'
+      - '--tag=us-central1-docker.pkg.dev/$PROJECT_ID/creators-link/web:$SHORT_SHA'
+      - '--tag=us-central1-docker.pkg.dev/$PROJECT_ID/creators-link/web:latest'
+      - '--cache-from=us-central1-docker.pkg.dev/$PROJECT_ID/creators-link/web:latest'
       - '--build-arg=BUILDKIT_INLINE_CACHE=1'
       - '.'
 
@@ -20,7 +20,7 @@ steps:
     args:
       - push
       - '--all-tags'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-studio/web'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/creators-link/web'
 
   # ─── Deploy to Cloud Run ──────────────────────────────────────────────────
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
@@ -30,12 +30,12 @@ steps:
     args:
       - run
       - deploy
-      - ai-studio-web
-      - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/ai-studio/web:$SHORT_SHA'
+      - creators-link-web
+      - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/creators-link/web:$SHORT_SHA'
       - '--region=us-central1'
       - '--platform=managed'
       - '--service-account=cloudrun-web@$PROJECT_ID.iam.gserviceaccount.com'
-      - '--add-cloudsql-instances=$PROJECT_ID:us-central1:aistudio'
+      - '--add-cloudsql-instances=$PROJECT_ID:us-central1:creators-link'
       - '--min-instances=0'
       - '--max-instances=3'
       - '--memory=512Mi'
@@ -44,7 +44,7 @@ steps:
       - '--timeout=60s'
       - '--allow-unauthenticated'
       - >-
-        --set-env-vars=NODE_ENV=production,GCP_PROJECT=$PROJECT_ID,GCP_ZONE=us-central1-f,GCP_INSTANCE_NAME=ai-studio-vm,GCS_BUCKET=mktia-ai-studio-outputs,CLOUD_PROVIDER=gcp
+        --set-env-vars=NODE_ENV=production,GCP_PROJECT=$PROJECT_ID,GCP_ZONE=us-central1-f,GCP_INSTANCE_NAME=creators-link-vm,GCS_BUCKET=mktia-ai-studio-outputs,CLOUD_PROVIDER=gcp
       - >-
         --set-secrets=BETTER_AUTH_SECRET=better-auth-secret:latest,BETTER_AUTH_URL=better-auth-url:latest,NEXT_PUBLIC_APP_URL=better-auth-url:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest,DATABASE_URL=database-url:latest,STRIPE_SECRET_KEY=stripe-secret-key:latest,STRIPE_WEBHOOK_SECRET=stripe-webhook-secret:latest
 
@@ -56,6 +56,6 @@ options:
 timeout: 1200s
 
 images:
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-studio/web:$SHORT_SHA'
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-studio/web:latest'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/creators-link/web:$SHORT_SHA'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/creators-link/web:latest'
 

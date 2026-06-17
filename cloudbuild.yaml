@@ -4,9 +4,9 @@ steps:
     id: build
     args:
       - build
-      - '--tag=us-central1-docker.pkg.dev/$PROJECT_ID/ai-studio/comfyui:$SHORT_SHA'
-      - '--tag=us-central1-docker.pkg.dev/$PROJECT_ID/ai-studio/comfyui:latest'
-      - '--cache-from=us-central1-docker.pkg.dev/$PROJECT_ID/ai-studio/comfyui:latest'
+      - '--tag=us-central1-docker.pkg.dev/$PROJECT_ID/creators-link/comfyui:$SHORT_SHA'
+      - '--tag=us-central1-docker.pkg.dev/$PROJECT_ID/creators-link/comfyui:latest'
+      - '--cache-from=us-central1-docker.pkg.dev/$PROJECT_ID/creators-link/comfyui:latest'
       - '--build-arg=BUILDKIT_INLINE_CACHE=1'
       - './docker'
     env:
@@ -18,14 +18,14 @@ steps:
     waitFor: [build]
     args:
       - push
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-studio/comfyui:$SHORT_SHA'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/creators-link/comfyui:$SHORT_SHA'
 
   - name: 'gcr.io/cloud-builders/docker'
     id: push-latest
     waitFor: [build]
     args:
       - push
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-studio/comfyui:latest'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/creators-link/comfyui:latest'
 
   # 3. Check VM status (separate step — no bash vars)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -47,7 +47,7 @@ steps:
     waitFor: [check-vm]
     entrypoint: bash
     env:
-      - 'IMAGE=us-central1-docker.pkg.dev/$PROJECT_ID/ai-studio/comfyui:$SHORT_SHA'
+      - 'IMAGE=us-central1-docker.pkg.dev/$PROJECT_ID/creators-link/comfyui:$SHORT_SHA'
       - 'INSTANCE=${_INSTANCE_NAME}'
       - 'ZONE=${_ZONE}'
       - 'GCS_BUCKET=${_GCS_BUCKET}'
@@ -76,10 +76,10 @@ steps:
         REMOTE_CMD="set -e
         gcloud auth configure-docker us-central1-docker.pkg.dev -q
         docker pull '$$IMAGE'
-        docker stop ai-studio-comfyui 2>/dev/null || true
-        docker rm   ai-studio-comfyui 2>/dev/null || true
+        docker stop creators-link-comfyui 2>/dev/null || true
+        docker rm   creators-link-comfyui 2>/dev/null || true
         docker run -d \
-          --name ai-studio-comfyui \
+          --name creators-link-comfyui \
           --runtime=nvidia --gpus all \
           -p 8188:8188 \
           -v /data:/data \
@@ -97,7 +97,7 @@ steps:
           --command="$$REMOTE_CMD"
 
 substitutions:
-  _INSTANCE_NAME: ai-studio-vm
+  _INSTANCE_NAME: creators-link-vm
   _ZONE: us-central1-f
   _GCS_BUCKET: mktia-ai-studio-outputs
 
@@ -107,7 +107,7 @@ options:
   dynamic_substitutions: true
 
 images:
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-studio/comfyui:$SHORT_SHA'
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-studio/comfyui:latest'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/creators-link/comfyui:$SHORT_SHA'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/creators-link/comfyui:latest'
 
 timeout: 3600s
