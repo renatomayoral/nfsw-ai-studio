@@ -11,7 +11,7 @@ export const AppSettingsSchema = z.object({
   runpodPodId: z.string().optional(),
   runpodDockerImage: z
     .string()
-    .default('ghcr.io/renatomayoral/nfsw-ai-studio:latest'),
+    .default('ghcr.io/renatomayoral/creators-link:latest'),
   gcsBucketName: z.string().default('mktia-ai-studio-outputs'),
   autoUpload: z.boolean().default(true),
   hfToken: z.string(),

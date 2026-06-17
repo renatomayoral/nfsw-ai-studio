@@ -1,5 +1,5 @@
 {
-  "name": "nfsw-ai-studio",
+  "name": "creators-link",
   "private": true,
   "scripts": {
     "build": "turbo build",

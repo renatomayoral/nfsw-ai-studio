@@ -14,7 +14,7 @@ export const RUNPOD_DEFAULTS = {
   apiBaseUrl: 'https://api.runpod.io/graphql',
   restBaseUrl: 'https://api.runpod.io/v2',
   defaultGpuType: 'NVIDIA A100-SXM4-80GB',
-  defaultImage: 'ghcr.io/renatomayoral/nfsw-ai-studio:latest',
+  defaultImage: 'ghcr.io/renatomayoral/creators-link:latest',
 } as const
 
 export const COMFYUI_DEFAULTS = {

@@ -1,6 +1,6 @@
 # Creators feature — link-in-bio pages + click tracking
 
-Drop-in package for **nfsw-ai-studio** (`apps/web`, App Router, Drizzle, Better Auth,
+Drop-in package for **creators-link** (`apps/web`, App Router, Drizzle, Better Auth,
 TanStack Query, `@repo/ui` shadcn slate-dark). It adds:
 
 - **`/creators`** — authenticated dashboard to manage one link-in-bio page per

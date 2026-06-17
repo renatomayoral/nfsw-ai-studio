@@ -1,4 +1,4 @@
-# NFSW AI Studio — Contexto do Projeto
+# Creators Link — Contexto do Projeto
 
 Monorepo com Turborepo + Next.js 16 para gerenciar ambiente de geração de vídeo/imagem com IA no Google Cloud (ComfyUI + Wan 2.2 + FLUX.1), com suporte a RunPod como provider alternativo e persistência permanente de outputs via Google Cloud Storage.
 
@@ -12,8 +12,8 @@ Monorepo com Turborepo + Next.js 16 para gerenciar ambiente de geração de víd
 - **Auth local**: `gcloud auth application-default login` (sem service account key file)
 
 ## GitHub
-- **Repo**: `renatomayoral/nfsw-ai-studio`
-- **Registry**: `ghcr.io/renatomayoral/nfsw-ai-studio:latest`
+- **Repo**: `renatomayoral/creators-link`
+- **Registry**: `ghcr.io/renatomayoral/creators-link:latest`
 
 ---
 
@@ -39,7 +39,7 @@ Monorepo com Turborepo + Next.js 16 para gerenciar ambiente de geração de víd
 ## Estrutura do Monorepo
 
 ```
-nfsw-ai-studio/
+creators-link/
 ├── apps/
 │   └── web/                          # Next.js 16 dashboard
 ├── packages/
@@ -97,7 +97,7 @@ const RUNPOD_DEFAULTS = {
   apiBaseUrl: 'https://api.runpod.io/graphql',
   restBaseUrl: 'https://api.runpod.io/v2',
   defaultGpuType: 'NVIDIA A100-SXM4-80GB',
-  defaultImage: 'ghcr.io/renatomayoral/nfsw-ai-studio:latest',
+  defaultImage: 'ghcr.io/renatomayoral/creators-link:latest',
 } as const
 ```
 
@@ -116,7 +116,7 @@ export type AppSettings = {
   runpodApiKey?: string
   runpodGpuType?: string
   runpodPodId?: string
-  runpodDockerImage?: string  // default: 'ghcr.io/renatomayoral/nfsw-ai-studio:latest'
+  runpodDockerImage?: string  // default: 'ghcr.io/renatomayoral/creators-link:latest'
   gcsBucketName: string       // default: 'mktia-ai-studio-outputs'
   autoUpload: boolean         // default: true
   hfToken: string
@@ -208,7 +208,7 @@ RunPod usa GraphQL:
 mutation {
   podFindAndDeployOnDemand(input: {
     name: "ai-studio"
-    imageName: "ghcr.io/renatomayoral/nfsw-ai-studio:latest"
+    imageName: "ghcr.io/renatomayoral/creators-link:latest"
     gpuTypeId: "NVIDIA A100-SXM4-80GB"
     cloudType: SECURE
     gpuCount: 1

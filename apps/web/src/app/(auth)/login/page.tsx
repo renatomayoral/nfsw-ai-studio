@@ -3,8 +3,8 @@ import Link from 'next/link'
 import { GoogleSignInButton } from './google-button'
 
 export const metadata: Metadata = {
-  title: 'Sign In — NFSW AI Studio',
-  description: 'Sign in to your NFSW AI Studio account.',
+  title: 'Sign In — Creators Link',
+  description: 'Sign in to your Creators Link account.',
 }
 
 export default function LoginPage() {

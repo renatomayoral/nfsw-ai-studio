@@ -10,10 +10,10 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://nfsw-ai-studio.com'),
+  metadataBase: new URL('https://creators-link.com'),
   title: {
-    default: 'NFSW AI Studio — AI Adult Content Generator',
-    template: '%s | NFSW AI Studio',
+    default: 'Creators Link — AI Adult Content Generator',
+    template: '%s | Creators Link',
   },
   description:
     'Professional AI-powered adult content generation. Ultra-HD images with FLUX.1 and cinematic videos with Wan 2.2. Private, fast, unlimited creativity.',
@@ -26,23 +26,23 @@ export const metadata: Metadata = {
     'Wan 2.2',
     'adult content SaaS',
   ],
-  authors: [{ name: 'NFSW AI Studio' }],
-  creator: 'NFSW AI Studio',
+  authors: [{ name: 'Creators Link' }],
+  creator: 'Creators Link',
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://nfsw-ai-studio.com',
-    siteName: 'NFSW AI Studio',
-    title: 'NFSW AI Studio — AI Adult Content Generator',
+    url: 'https://creators-link.com',
+    siteName: 'Creators Link',
+    title: 'Creators Link — AI Adult Content Generator',
     description:
       'Professional AI adult content generation. Ultra-HD images & cinematic videos. Private cloud. Instant GPU.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NFSW AI Studio',
+    title: 'Creators Link',
     description: 'Professional AI adult content generation platform.',
-    creator: '@nfswai',
+    creator: '@creatorslink',
   },
 }
 
