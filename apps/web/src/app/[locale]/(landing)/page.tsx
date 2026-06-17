@@ -1,13 +1,9 @@
-import type { Metadata } from 'next'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { LandingNav } from './_components/landing-nav'
-
-export const metadata: Metadata = {
-  title: 'CreatorsLink — Páginas de links + analytics para criadoras',
-  description:
-    'Crie páginas de links lindas para cada criadora e acompanhe, por plataforma, exatamente de onde vêm os cliques — OnlyFans, Privacy, Instagram e mais, num painel só.',
-  robots: { index: true, follow: true },
-}
 
 const ACCENT = '#ec4899'
 
@@ -104,12 +100,33 @@ const FAQS = [
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
+  const { theme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
+  const isLight = mounted && theme === 'light'
+
+  // Dynamic theme colors
+  const bgColor = isLight ? '#ffffff' : '#020817'
+  const textColor = isLight ? '#0f172a' : '#f8fafc'
+  const mutedTextColor = isLight ? '#475569' : '#a3b1c6'
+  const lightMutedTextColor = isLight ? '#64748b' : '#94a3b8'
+  const cardBg = isLight ? '#ffffff' : '#0b1220'
+  const cardInnerBg = isLight ? '#f8fafc' : '#0e1621'
+  const borderColor = isLight ? '#e2e8f0' : '#1e293b'
+  const navBorderColor = isLight ? '#e2e8f0' : '#11203a'
+  const footerBg = isLight ? '#f8fafc' : '#060d1c'
+  const footerBorderColor = isLight ? '#e2e8f0' : '#11203a'
+  const shadowStyle = isLight ? '0 10px 30px -15px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.02)' : 'none'
+  const cardBorderColor = isLight ? '#e2e8f0' : '#1e293b'
+  const dividerBg = isLight ? '#e2e8f0' : '#1e293b'
+
   return (
     <div
       style={{
-        background: '#020817',
+        background: bgColor,
         fontFamily: 'Inter,system-ui,sans-serif',
-        color: '#f8fafc',
+        color: textColor,
         overflowX: 'hidden',
       }}
     >
@@ -247,9 +264,9 @@ export default function LandingPage() {
                   gap: 9,
                   padding: '14px 22px',
                   borderRadius: 11,
-                  background: 'rgba(255,255,255,.05)',
-                  border: '1px solid #1e293b',
-                  color: '#e2e8f0',
+                  background: isLight ? 'rgba(0,0,0,.04)' : 'rgba(255,255,255,.05)',
+                  border: `1px solid ${borderColor}`,
+                  color: isLight ? '#0f172a' : '#e2e8f0',
                   fontSize: 15,
                   fontWeight: 600,
                   textDecoration: 'none',
@@ -265,7 +282,7 @@ export default function LandingPage() {
                 gap: 18,
                 marginTop: 26,
                 fontSize: 13,
-                color: '#64748b',
+                color: lightMutedTextColor,
               }}
             >
               {['Publica em 60s', 'Sem cartão', '100% no Lighthouse'].map((t) => (
@@ -282,9 +299,9 @@ export default function LandingPage() {
             <div
               style={{
                 borderRadius: 20,
-                border: '1px solid #1e293b',
-                background: '#0b1220',
-                boxShadow: '0 40px 90px -30px rgba(0,0,0,.7)',
+                border: `1px solid ${borderColor}`,
+                background: cardBg,
+                boxShadow: isLight ? '0 20px 40px -15px rgba(0,0,0,.08)' : '0 40px 90px -30px rgba(0,0,0,.7)',
                 overflow: 'hidden',
               }}
             >
@@ -294,7 +311,7 @@ export default function LandingPage() {
                   alignItems: 'center',
                   gap: 7,
                   padding: '12px 15px',
-                  borderBottom: '1px solid #1e293b',
+                  borderBottom: `1px solid ${borderColor}`,
                 }}
               >
                 {['#ef4444', '#f59e0b', '#22c55e'].map((c) => (
@@ -307,7 +324,7 @@ export default function LandingPage() {
                   style={{
                     marginLeft: 8,
                     fontSize: 12,
-                    color: '#64748b',
+                    color: lightMutedTextColor,
                     fontFamily: 'ui-monospace,monospace',
                   }}
                 >
@@ -317,25 +334,25 @@ export default function LandingPage() {
               <div style={{ padding: 18 }}>
                 <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
                   <div
-                    style={{ flex: 1, border: '1px solid #1e293b', borderRadius: 12, padding: 12 }}
+                    style={{ flex: 1, border: `1px solid ${borderColor}`, borderRadius: 12, padding: 12 }}
                   >
-                    <div style={{ fontSize: 11, color: '#94a3b8' }}>Cliques · 30d</div>
+                    <div style={{ fontSize: 11, color: mutedTextColor }}>Cliques · 30d</div>
                     <div style={{ fontSize: 20, fontWeight: 800, marginTop: 4 }}>45.300</div>
                     <div style={{ fontSize: 11, color: '#34d399', fontWeight: 600, marginTop: 2 }}>
                       +9,7%
                     </div>
                   </div>
                   <div
-                    style={{ flex: 1, border: '1px solid #1e293b', borderRadius: 12, padding: 12 }}
+                    style={{ flex: 1, border: `1px solid ${borderColor}`, borderRadius: 12, padding: 12 }}
                   >
-                    <div style={{ fontSize: 11, color: '#94a3b8' }}>Top plataforma</div>
+                    <div style={{ fontSize: 11, color: mutedTextColor }}>Top plataforma</div>
                     <div style={{ fontSize: 20, fontWeight: 800, marginTop: 4 }}>OnlyFans</div>
-                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                    <div style={{ fontSize: 11, color: lightMutedTextColor, marginTop: 2 }}>
                       52% dos cliques
                     </div>
                   </div>
                 </div>
-                <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 9 }}>
+                <div style={{ fontSize: 11, color: mutedTextColor, marginBottom: 9 }}>
                   Cliques · 14 dias
                 </div>
                 <div
@@ -345,7 +362,7 @@ export default function LandingPage() {
                     gap: 5,
                     height: 84,
                     paddingBottom: 12,
-                    borderBottom: '1px solid #1e293b',
+                    borderBottom: `1px solid ${borderColor}`,
                   }}
                 >
                   {[42, 55, 48, 66, 58, 78, 64, 88, 74, 100].map((h, i) => (
@@ -383,7 +400,7 @@ export default function LandingPage() {
                         </span>
                         <span style={{ color: '#94a3b8' }}>{pct}%</span>
                       </div>
-                      <div style={{ height: 6, borderRadius: 99, background: '#131c2e' }}>
+                      <div style={{ height: 6, borderRadius: 99, background: isLight ? '#e2e8f0' : '#131c2e' }}>
                         <div
                           style={{
                             height: '100%',
@@ -408,15 +425,15 @@ export default function LandingPage() {
                 width: 176,
                 borderRadius: 26,
                 padding: 7,
-                background: 'linear-gradient(160deg,#26262b,#121214)',
-                boxShadow: `0 30px 60px -20px rgba(236,72,153,.5)`,
+                background: isLight ? 'linear-gradient(160deg,#e2e8f0,#cbd5e1)' : 'linear-gradient(160deg,#26262b,#121214)',
+                boxShadow: isLight ? '0 15px 30px -10px rgba(0,0,0,0.1)' : `0 30px 60px -20px rgba(236,72,153,.5)`,
                 animation: 'lpfloat 8s ease-in-out infinite',
               }}
             >
               <div
                 style={{
                   borderRadius: 20,
-                  background: 'radial-gradient(180px 150px at 50% 0%,#2a1230,#0a0a0c 62%)',
+                  background: isLight ? 'radial-gradient(180px 150px at 50% 0%,#fce7f3,#ffffff 62%)' : 'radial-gradient(180px 150px at 50% 0%,#2a1230,#0a0a0c 62%)',
                   padding: '20px 14px 16px',
                   textAlign: 'center',
                 }}
@@ -436,7 +453,7 @@ export default function LandingPage() {
                       position: 'absolute',
                       inset: 3,
                       borderRadius: '50%',
-                      background: '#0a0a0c',
+                      background: isLight ? '#ffffff' : '#0a0a0c',
                     }}
                   />
                   <div
@@ -456,7 +473,7 @@ export default function LandingPage() {
                     B
                   </div>
                 </div>
-                <div style={{ marginTop: 10, fontSize: 13, fontWeight: 800, color: '#fff' }}>
+                <div style={{ marginTop: 10, fontSize: 13, fontWeight: 800, color: isLight ? '#0f172a' : '#fff' }}>
                   Babi Barelli
                 </div>
                 <div style={{ marginTop: 9, display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -476,11 +493,11 @@ export default function LandingPage() {
                     style={{
                       padding: 8,
                       borderRadius: 9,
-                      background: 'rgba(255,255,255,.05)',
-                      border: '1px solid rgba(255,255,255,.08)',
+                      background: isLight ? 'rgba(0,0,0,.03)' : 'rgba(255,255,255,.05)',
+                      border: isLight ? '1px solid rgba(0,0,0,.06)' : '1px solid rgba(255,255,255,.08)',
                       fontSize: 10.5,
                       fontWeight: 600,
-                      color: '#e2e8f0',
+                      color: isLight ? '#0f172a' : '#e2e8f0',
                     }}
                   >
                     Instagram
@@ -489,11 +506,11 @@ export default function LandingPage() {
                     style={{
                       padding: 8,
                       borderRadius: 9,
-                      background: 'rgba(255,255,255,.05)',
-                      border: '1px solid rgba(255,255,255,.08)',
+                      background: isLight ? 'rgba(0,0,0,.03)' : 'rgba(255,255,255,.05)',
+                      border: isLight ? '1px solid rgba(0,0,0,.06)' : '1px solid rgba(255,255,255,.08)',
                       fontSize: 10.5,
                       fontWeight: 600,
-                      color: '#e2e8f0',
+                      color: isLight ? '#0f172a' : '#e2e8f0',
                     }}
                   >
                     Privacy
@@ -508,9 +525,9 @@ export default function LandingPage() {
       {/* ── STATS STRIP ── */}
       <section
         style={{
-          borderTop: '1px solid #11203a',
-          borderBottom: '1px solid #11203a',
-          background: '#060d1c',
+          borderTop: `1px solid ${navBorderColor}`,
+          borderBottom: `1px solid ${navBorderColor}`,
+          background: footerBg,
         }}
       >
         <div
@@ -566,7 +583,7 @@ export default function LandingPage() {
           >
             Tudo que uma criadora precisa numa bio só
           </h2>
-          <p style={{ margin: '14px 0 0', fontSize: 16, lineHeight: 1.6, color: '#a3b1c6' }}>
+          <p style={{ margin: '14px 0 0', fontSize: 16, lineHeight: 1.6, color: mutedTextColor }}>
             Página feita pra converter e rastreio que prova o que funciona — sem planilha, sem
             achismo.
           </p>
@@ -701,10 +718,11 @@ export default function LandingPage() {
             <div
               key={title}
               style={{
-                border: '1px solid #1e293b',
+                border: `1px solid ${borderColor}`,
                 borderRadius: 18,
-                background: '#0b1220',
+                background: cardBg,
                 padding: 26,
+                boxShadow: shadowStyle,
               }}
             >
               <div
@@ -722,7 +740,7 @@ export default function LandingPage() {
                 {icon}
               </div>
               <h3 style={{ margin: '18px 0 0', fontSize: 18, fontWeight: 700 }}>{title}</h3>
-              <p style={{ margin: '9px 0 0', fontSize: 14.5, lineHeight: 1.6, color: '#94a3b8' }}>
+              <p style={{ margin: '9px 0 0', fontSize: 14.5, lineHeight: 1.6, color: lightMutedTextColor }}>
                 {desc}
               </p>
             </div>
@@ -770,7 +788,7 @@ export default function LandingPage() {
               desc: (
                 <>
                   Digite o nome da criadora. Geramos o link{' '}
-                  <code style={{ fontFamily: 'ui-monospace,monospace', color: '#cbd5e1' }}>
+                  <code style={{ fontFamily: 'ui-monospace,monospace', color: isLight ? '#1e293b' : '#cbd5e1' }}>
                     /p/nome
                   </code>{' '}
                   e os botões das plataformas automaticamente.
@@ -791,15 +809,16 @@ export default function LandingPage() {
             <div
               key={n}
               style={{
-                border: '1px solid #1e293b',
+                border: `1px solid ${borderColor}`,
                 borderRadius: 18,
-                background: '#0b1220',
+                background: cardBg,
                 padding: 28,
+                boxShadow: shadowStyle,
               }}
             >
               <div style={{ fontSize: 13, fontWeight: 800, color: ACCENT }}>{n}</div>
               <h3 style={{ margin: '12px 0 0', fontSize: 19, fontWeight: 700 }}>{title}</h3>
-              <p style={{ margin: '9px 0 0', fontSize: 14.5, lineHeight: 1.6, color: '#94a3b8' }}>
+              <p style={{ margin: '9px 0 0', fontSize: 14.5, lineHeight: 1.6, color: lightMutedTextColor }}>
                 {desc}
               </p>
             </div>
@@ -811,14 +830,15 @@ export default function LandingPage() {
       <section style={{ maxWidth: 1180, margin: '0 auto', padding: '80px 24px 30px' }}>
         <div
           style={{
-            border: '1px solid #1e293b',
+            border: `1px solid ${borderColor}`,
             borderRadius: 24,
-            background: 'linear-gradient(160deg,#0b1220,#070e1c)',
+            background: isLight ? 'linear-gradient(160deg,#ffffff,#f8fafc)' : 'linear-gradient(160deg,#0b1220,#070e1c)',
             padding: 'clamp(28px,5vw,56px)',
             display: 'flex',
             gap: 48,
             flexWrap: 'wrap',
             alignItems: 'center',
+            boxShadow: shadowStyle,
           }}
         >
           <div style={{ flex: '1 1 360px', minWidth: 300 }}>
@@ -843,7 +863,7 @@ export default function LandingPage() {
             >
               Saiba qual plataforma realmente traz dinheiro
             </h2>
-            <p style={{ margin: '16px 0 0', fontSize: 16, lineHeight: 1.65, color: '#a3b1c6' }}>
+            <p style={{ margin: '16px 0 0', fontSize: 16, lineHeight: 1.65, color: mutedTextColor }}>
               Pare de adivinhar. Cada clique é atribuído a uma criadora e a uma plataforma, então
               você sabe onde investir tempo e tráfego.
             </p>
@@ -852,7 +872,7 @@ export default function LandingPage() {
                 {
                   text: (
                     <>
-                      <strong style={{ color: '#fff' }}>Cliques por plataforma</strong> — ranking
+                      <strong style={{ color: textColor }}>Cliques por plataforma</strong> — ranking
                       com % e barras comparativas.
                     </>
                   ),
@@ -860,7 +880,7 @@ export default function LandingPage() {
                 {
                   text: (
                     <>
-                      <strong style={{ color: '#fff' }}>Tendência diária</strong> — 14 dias de série
+                      <strong style={{ color: textColor }}>Tendência diária</strong> — 14 dias de série
                       e variação vs. período anterior.
                     </>
                   ),
@@ -868,7 +888,7 @@ export default function LandingPage() {
                 {
                   text: (
                     <>
-                      <strong style={{ color: '#fff' }}>Visão por criadora</strong> — compare
+                      <strong style={{ color: textColor }}>Visão por criadora</strong> — compare
                       páginas e descubra o top link de cada uma.
                     </>
                   ),
@@ -876,7 +896,7 @@ export default function LandingPage() {
               ].map(({ text }, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 11 }}>
                   <IconCheck />
-                  <span style={{ fontSize: 14.5, color: '#cbd5e1', lineHeight: 1.55 }}>{text}</span>
+                  <span style={{ fontSize: 14.5, color: mutedTextColor, lineHeight: 1.55 }}>{text}</span>
                 </div>
               ))}
             </div>
@@ -884,9 +904,9 @@ export default function LandingPage() {
           <div style={{ flex: '1 1 340px', minWidth: 300 }}>
             <div
               style={{
-                border: '1px solid #1e293b',
+                border: `1px solid ${borderColor}`,
                 borderRadius: 16,
-                background: '#0b1220',
+                background: cardBg,
                 padding: 20,
               }}
             >
@@ -927,10 +947,10 @@ export default function LandingPage() {
                         {label}
                       </span>
                       <span style={{ color: '#94a3b8' }}>
-                        <strong style={{ color: '#f8fafc' }}>{n}</strong> · {pct}%
+                        <strong style={{ color: isLight ? '#0f172a' : '#f8fafc' }}>{n}</strong> · {pct}%
                       </span>
                     </div>
-                    <div style={{ height: 7, borderRadius: 99, background: '#131c2e' }}>
+                    <div style={{ height: 7, borderRadius: 99, background: isLight ? '#e2e8f0' : '#131c2e' }}>
                       <div
                         style={{
                           height: '100%',
@@ -955,9 +975,9 @@ export default function LandingPage() {
       >
         <div
           style={{
-            border: '1px solid #15324a',
+            border: isLight ? '1px solid #bae6fd' : '1px solid #15324a',
             borderRadius: 24,
-            background: 'linear-gradient(160deg,#08263b,#070e1c 62%)',
+            background: isLight ? 'linear-gradient(160deg,#e0f2fe,#f0f9ff 62%)' : 'linear-gradient(160deg,#08263b,#070e1c 62%)',
             padding: 'clamp(28px,5vw,56px)',
             display: 'flex',
             gap: 52,
@@ -972,9 +992,9 @@ export default function LandingPage() {
                 maxWidth: 380,
                 margin: '0 auto',
                 borderRadius: 22,
-                border: '1px solid #1e3a52',
-                background: '#0e1621',
-                boxShadow: '0 40px 90px -30px rgba(34,158,217,.45)',
+                border: isLight ? '1px solid #bae6fd' : '1px solid #1e3a52',
+                background: isLight ? '#f3f4f6' : '#0e1621',
+                boxShadow: isLight ? '0 30px 60px -25px rgba(34,158,217,.2)' : '0 40px 90px -30px rgba(34,158,217,.45)',
                 overflow: 'hidden',
               }}
             >
@@ -1031,21 +1051,22 @@ export default function LandingPage() {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 10,
-                  background: '#0e1621',
+                  background: isLight ? '#f3f4f6' : '#0e1621',
                 }}
               >
                 <div
                   style={{
                     alignSelf: 'flex-start',
                     maxWidth: '88%',
-                    background: '#182533',
+                    background: isLight ? '#ffffff' : '#182533',
                     borderRadius: '14px 14px 14px 4px',
                     padding: '11px 13px',
+                    boxShadow: isLight ? '0 1px 2px rgba(0,0,0,0.05)' : undefined,
                   }}
                 >
-                  <div style={{ fontSize: 13, lineHeight: 1.5, color: '#e8eef4' }}>
+                  <div style={{ fontSize: 13, lineHeight: 1.5, color: isLight ? '#1f2937' : '#e8eef4' }}>
                     Olá! 💎 Escolha seu plano para entrar no{' '}
-                    <strong style={{ color: '#5cc6f0' }}>Canal VIP da Babi</strong>:
+                    <strong style={{ color: isLight ? '#229ed9' : '#5cc6f0' }}>Canal VIP da Babi</strong>:
                   </div>
                 </div>
                 <div
@@ -1072,13 +1093,15 @@ export default function LandingPage() {
                         borderRadius: 11,
                         background: featured
                           ? 'linear-gradient(120deg,#229ED9,#1c8bc0)'
-                          : '#1d2b3a',
-                        border: `1px solid ${featured ? '#2fa8e0' : '#294258'}`,
-                        boxShadow: featured ? '0 8px 20px -8px rgba(34,158,217,.7)' : undefined,
+                          : (isLight ? '#ffffff' : '#1d2b3a'),
+                        border: `1px solid ${featured ? '#2fa8e0' : (isLight ? '#e5e7eb' : '#294258')}`,
+                        boxShadow: featured
+                          ? '0 8px 20px -8px rgba(34,158,217,.7)'
+                          : (isLight ? '0 1px 2px rgba(0,0,0,0.02)' : undefined),
                       }}
                     >
                       <span
-                        style={{ fontSize: 13, fontWeight: featured ? 700 : 600, color: '#fff' }}
+                        style={{ fontSize: 13, fontWeight: featured ? 700 : 600, color: featured ? '#fff' : (isLight ? '#1f2937' : '#fff') }}
                       >
                         {label}
                       </span>
@@ -1086,7 +1109,7 @@ export default function LandingPage() {
                         style={{
                           fontSize: 13,
                           fontWeight: 800,
-                          color: featured ? '#fff' : '#5cc6f0',
+                          color: featured ? '#fff' : (isLight ? '#229ed9' : '#5cc6f0'),
                         }}
                       >
                         {price}
@@ -1098,9 +1121,10 @@ export default function LandingPage() {
                   style={{
                     alignSelf: 'flex-end',
                     maxWidth: '70%',
-                    background: '#2b5278',
+                    background: isLight ? '#229ed9' : '#2b5278',
                     borderRadius: '14px 14px 4px 14px',
                     padding: '9px 13px',
+                    boxShadow: isLight ? '0 1px 2px rgba(0,0,0,0.05)' : undefined,
                   }}
                 >
                   <div style={{ fontSize: 13, color: '#fff' }}>Quero o VIP Anual ⭐</div>
@@ -1109,10 +1133,10 @@ export default function LandingPage() {
                   style={{
                     alignSelf: 'flex-start',
                     maxWidth: '90%',
-                    background: '#182533',
+                    background: isLight ? '#ecfdf5' : '#182533',
                     borderRadius: '14px 14px 14px 4px',
                     padding: '12px 13px',
-                    border: '1px solid #1f3a2e',
+                    border: isLight ? '1px solid #a7f3d0' : '1px solid #1f3a2e',
                   }}
                 >
                   <div
@@ -1122,7 +1146,7 @@ export default function LandingPage() {
                       gap: 8,
                       fontSize: 13,
                       fontWeight: 700,
-                      color: '#6ee7b7',
+                      color: isLight ? '#059669' : '#6ee7b7',
                     }}
                   >
                     <svg
@@ -1130,7 +1154,7 @@ export default function LandingPage() {
                       width="16"
                       height="16"
                       fill="none"
-                      stroke="#6ee7b7"
+                      stroke={isLight ? '#059669' : '#6ee7b7'}
                       strokeWidth="2.6"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -1139,8 +1163,8 @@ export default function LandingPage() {
                     </svg>
                     Pagamento confirmado via Pix
                   </div>
-                  <div style={{ fontSize: 12.5, lineHeight: 1.5, color: '#aebfcf', marginTop: 6 }}>
-                    Acesso ao <strong style={{ color: '#e8eef4' }}>Canal VIP</strong> liberado
+                  <div style={{ fontSize: 12.5, lineHeight: 1.5, color: isLight ? '#374151' : '#aebfcf', marginTop: 6 }}>
+                    Acesso ao <strong style={{ color: isLight ? '#0f172a' : '#e8eef4' }}>Canal VIP</strong> liberado
                     automaticamente. Bem-vinda! 🎉
                   </div>
                 </div>
@@ -1161,10 +1185,10 @@ export default function LandingPage() {
                 fontSize: 12,
                 fontWeight: 700,
                 letterSpacing: '.04em',
-                color: '#5cc6f0',
+                color: isLight ? '#0284c7' : '#5cc6f0',
               }}
             >
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="#5cc6f0">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill={isLight ? '#0284c7' : '#5cc6f0'}>
                 <path d="M21.9 4.3l-3.1 14.6c-.2 1-.9 1.3-1.7.8l-4.6-3.4-2.2 2.1c-.3.3-.5.5-.9.5l.3-4.5L18 6.2c.4-.3-.1-.5-.6-.2L7.2 12.6l-4.4-1.4c-1-.3-1-.9.2-1.4l17.2-6.6c.8-.3 1.5.2 1.2 1.4z" />
               </svg>
               NOVO · TELEGRAM
@@ -1175,6 +1199,7 @@ export default function LandingPage() {
                 fontSize: 'clamp(26px,3.2vw,38px)',
                 fontWeight: 800,
                 letterSpacing: '-.02em',
+                color: isLight ? '#0f172a' : '#fff',
               }}
             >
               Venda planos no Telegram{' '}
@@ -1189,22 +1214,22 @@ export default function LandingPage() {
                 sem sair da plataforma
               </span>
             </h2>
-            <p style={{ margin: '16px 0 0', fontSize: 16, lineHeight: 1.65, color: '#a3b1c6' }}>
+            <p style={{ margin: '16px 0 0', fontSize: 16, lineHeight: 1.65, color: isLight ? '#475569' : '#a3b1c6' }}>
               Crie planos VIP, conecte seu bot e deixe o resto com a gente: o assinante paga, entra
               no canal e você recebe — tudo integrado, sem ferramenta de fora.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 26 }}>
               {[
                 {
-                  bg: 'rgba(34,158,217,.14)',
-                  border: 'rgba(34,158,217,.3)',
+                  bg: isLight ? 'rgba(2,132,199,.08)' : 'rgba(34,158,217,.14)',
+                  border: isLight ? 'rgba(2,132,199,.2)' : 'rgba(34,158,217,.3)',
                   icon: (
                     <svg
                       viewBox="0 0 24 24"
                       width="17"
                       height="17"
                       fill="none"
-                      stroke="#5cc6f0"
+                      stroke={isLight ? '#0284c7' : '#5cc6f0'}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -1215,7 +1240,7 @@ export default function LandingPage() {
                   ),
                   text: (
                     <>
-                      <strong style={{ color: '#fff' }}>Planos recorrentes</strong> — mensal,
+                      <strong style={{ color: isLight ? '#0f172a' : '#fff' }}>Planos recorrentes</strong> — mensal,
                       trimestral e anual, criados em minutos pelo painel.
                     </>
                   ),
@@ -1240,7 +1265,7 @@ export default function LandingPage() {
                   ),
                   text: (
                     <>
-                      <strong style={{ color: '#fff' }}>Recebimento integrado</strong> — Pix e
+                      <strong style={{ color: isLight ? '#0f172a' : '#fff' }}>Recebimento integrado</strong> — Pix e
                       cartão direto na plataforma; o dinheiro cai pra você, sem intermediário.
                     </>
                   ),
@@ -1264,7 +1289,7 @@ export default function LandingPage() {
                   ),
                   text: (
                     <>
-                      <strong style={{ color: '#fff' }}>Acesso automático</strong> — assinou, entra
+                      <strong style={{ color: isLight ? '#0f172a' : '#fff' }}>Acesso automático</strong> — assinou, entra
                       no canal; expirou, sai. Liberação e remoção no automático.
                     </>
                   ),
@@ -1289,7 +1314,7 @@ export default function LandingPage() {
                   ),
                   text: (
                     <>
-                      <strong style={{ color: '#fff' }}>Tudo num painel</strong> — assinantes,
+                      <strong style={{ color: isLight ? '#0f172a' : '#fff' }}>Tudo num painel</strong> — assinantes,
                       receita e cliques da bio juntos, no seu domínio próprio.
                     </>
                   ),
@@ -1312,7 +1337,7 @@ export default function LandingPage() {
                     {icon}
                   </span>
                   <span
-                    style={{ fontSize: 14.5, lineHeight: 1.55, color: '#cbd5e1', paddingTop: 5 }}
+                    style={{ fontSize: 14.5, lineHeight: 1.55, color: isLight ? '#334155' : '#cbd5e1', paddingTop: 5 }}
                   >
                     {text}
                   </span>
@@ -1333,7 +1358,7 @@ export default function LandingPage() {
                 fontSize: 14.5,
                 fontWeight: 700,
                 textDecoration: 'none',
-                boxShadow: '0 14px 30px -10px rgba(34,158,217,.65)',
+                boxShadow: isLight ? '0 10px 20px -8px rgba(34,158,217,.4)' : '0 14px 30px -10px rgba(34,158,217,.65)',
               }}
             >
               Ativar vendas no Telegram <IconArrow />
@@ -1382,21 +1407,22 @@ export default function LandingPage() {
           {/* Starter */}
           <div
             style={{
-              border: '1px solid #1e293b',
+              border: `1px solid ${cardBorderColor}`,
               borderRadius: 20,
-              background: '#0b1220',
+              background: cardBg,
               padding: 30,
+              boxShadow: shadowStyle,
             }}
           >
             <div style={{ fontSize: 15, fontWeight: 700 }}>Free (O Funil de Atração)</div>
             <div style={{ marginTop: 14, display: 'flex', alignItems: 'baseline', gap: 6 }}>
               <span style={{ fontSize: 40, fontWeight: 900, letterSpacing: '-.02em' }}>$0</span>
-              <span style={{ fontSize: 14, color: '#64748b' }}>/mês</span>
+              <span style={{ fontSize: 14, color: lightMutedTextColor }}>/mês</span>
             </div>
-            <div style={{ fontSize: 12.5, color: '#94a3b8', marginTop: 4, fontWeight: 600 }}>
+            <div style={{ fontSize: 12.5, color: mutedTextColor, marginTop: 4, fontWeight: 600 }}>
               Taxas: 9,9% + $0,30 por transação
             </div>
-            <p style={{ margin: '10px 0 0', fontSize: 13.5, color: '#94a3b8', lineHeight: 1.5 }}>
+            <p style={{ margin: '10px 0 0', fontSize: 13.5, color: mutedTextColor, lineHeight: 1.5 }}>
               Criadores iniciantes, quem está testando o bot do Telegram ou migrando de plataformas gratuitas (AllMyLinks).
             </p>
             <Link
@@ -1407,9 +1433,9 @@ export default function LandingPage() {
                 marginTop: 20,
                 padding: 12,
                 borderRadius: 10,
-                background: 'rgba(255,255,255,.05)',
-                border: '1px solid #1e293b',
-                color: '#e2e8f0',
+                background: isLight ? 'rgba(0,0,0,.03)' : 'rgba(255,255,255,.05)',
+                border: `1px solid ${cardBorderColor}`,
+                color: isLight ? '#0f172a' : '#e2e8f0',
                 fontSize: 14,
                 fontWeight: 600,
                 textDecoration: 'none',
@@ -1417,14 +1443,14 @@ export default function LandingPage() {
             >
               Criar conta
             </Link>
-            <div style={{ height: 1, background: '#1e293b', margin: '22px 0' }} />
+            <div style={{ height: 1, background: dividerBg, margin: '22px 0' }} />
             <div
               style={{
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 11,
                 fontSize: 13.5,
-                color: '#cbd5e1',
+                color: mutedTextColor,
               }}
             >
               {[
@@ -1446,9 +1472,9 @@ export default function LandingPage() {
               position: 'relative',
               border: `1.5px solid ${ACCENT}`,
               borderRadius: 20,
-              background: `linear-gradient(180deg,rgba(236,72,153,.08),#0b1220)`,
+              background: isLight ? `linear-gradient(180deg,rgba(236,72,153,.04),#ffffff)` : `linear-gradient(180deg,rgba(236,72,153,.08),#0b1220)`,
               padding: 30,
-              boxShadow: `0 30px 70px -28px ${ACCENT}`,
+              boxShadow: isLight ? '0 25px 60px -25px rgba(236,72,153,.25)' : `0 30px 70px -28px ${ACCENT}`,
             }}
           >
             <span
@@ -1472,12 +1498,12 @@ export default function LandingPage() {
             <div style={{ fontSize: 15, fontWeight: 700 }}>Creator / Growth</div>
             <div style={{ marginTop: 14, display: 'flex', alignItems: 'baseline', gap: 6 }}>
               <span style={{ fontSize: 40, fontWeight: 900, letterSpacing: '-.02em' }}>$19</span>
-              <span style={{ fontSize: 14, color: '#94a3b8' }}>/mês</span>
+              <span style={{ fontSize: 14, color: lightMutedTextColor }}>/mês</span>
             </div>
             <div style={{ fontSize: 12.5, color: ACCENT, marginTop: 4, fontWeight: 600 }}>
               Taxas: 6,9% + $0,30 por transação
             </div>
-            <p style={{ margin: '10px 0 0', fontSize: 13.5, color: '#cbd5e1', lineHeight: 1.5 }}>
+            <p style={{ margin: '10px 0 0', fontSize: 13.5, color: mutedTextColor, lineHeight: 1.5 }}>
               O criador que já vende toda semana, quer tirar a sua marca do perfil dele, mas ainda não fatura milhares de dólares para justificar o plano Pro.
             </p>
             <Link
@@ -1498,14 +1524,14 @@ export default function LandingPage() {
             >
               Assinar Creator / Growth
             </Link>
-            <div style={{ height: 1, background: '#1e293b', margin: '22px 0' }} />
+            <div style={{ height: 1, background: dividerBg, margin: '22px 0' }} />
             <div
               style={{
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 11,
                 fontSize: 13.5,
-                color: '#cbd5e1',
+                color: mutedTextColor,
               }}
             >
               {[
@@ -1526,21 +1552,22 @@ export default function LandingPage() {
           {/* Pro / Scale */}
           <div
             style={{
-              border: '1px solid #1e293b',
+              border: `1px solid ${cardBorderColor}`,
               borderRadius: 20,
-              background: '#0b1220',
+              background: cardBg,
               padding: 30,
+              boxShadow: shadowStyle,
             }}
           >
             <div style={{ fontSize: 15, fontWeight: 700 }}>Pro / Scale (Para os Tubarões)</div>
             <div style={{ marginTop: 14, display: 'flex', alignItems: 'baseline', gap: 6 }}>
               <span style={{ fontSize: 40, fontWeight: 900, letterSpacing: '-.02em' }}>$79</span>
-              <span style={{ fontSize: 14, color: '#64748b' }}>/mês</span>
+              <span style={{ fontSize: 14, color: lightMutedTextColor }}>/mês</span>
             </div>
-            <div style={{ fontSize: 12.5, color: '#94a3b8', marginTop: 4, fontWeight: 600 }}>
+            <div style={{ fontSize: 12.5, color: mutedTextColor, marginTop: 4, fontWeight: 600 }}>
               Taxas: 3,9% + $0,30 por transação
             </div>
-            <p style={{ margin: '10px 0 0', fontSize: 13.5, color: '#94a3b8', lineHeight: 1.5 }}>
+            <p style={{ margin: '10px 0 0', fontSize: 13.5, color: mutedTextColor, lineHeight: 1.5 }}>
               Grandes produtores de conteúdo, agências e criadores high-ticket que movimentam mais de $3.000/mês. Repasse quase puro da Stripe.
             </p>
             <a
@@ -1551,9 +1578,9 @@ export default function LandingPage() {
                 marginTop: 20,
                 padding: 12,
                 borderRadius: 10,
-                background: 'rgba(255,255,255,.05)',
-                border: '1px solid #1e293b',
-                color: '#e2e8f0',
+                background: isLight ? 'rgba(0,0,0,.03)' : 'rgba(255,255,255,.05)',
+                border: `1px solid ${cardBorderColor}`,
+                color: isLight ? '#0f172a' : '#e2e8f0',
                 fontSize: 14,
                 fontWeight: 600,
                 textDecoration: 'none',
@@ -1561,14 +1588,14 @@ export default function LandingPage() {
             >
               Assinar Pro / Scale
             </a>
-            <div style={{ height: 1, background: '#1e293b', margin: '22px 0' }} />
+            <div style={{ height: 1, background: dividerBg, margin: '22px 0' }} />
             <div
               style={{
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 11,
                 fontSize: 13.5,
-                color: '#cbd5e1',
+                color: mutedTextColor,
               }}
             >
               {[
@@ -1615,7 +1642,7 @@ export default function LandingPage() {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 40 }}>
           {FAQS.map(({ q, a }) => (
-            <FaqItem key={q} q={q} a={a} />
+            <FaqItem key={q} q={q} a={a} isLight={isLight} />
           ))}
         </div>
       </section>
@@ -1625,12 +1652,13 @@ export default function LandingPage() {
         <div
           style={{
             position: 'relative',
-            border: `1px solid rgba(236,72,153,.3)`,
+            border: `1px solid rgba(236,72,153,${isLight ? '.2' : '.3'})`,
             borderRadius: 26,
-            background: 'linear-gradient(135deg,rgba(236,72,153,.14),rgba(124,58,237,.14))',
+            background: isLight ? 'linear-gradient(135deg,rgba(236,72,153,.06),rgba(124,58,237,.06))' : 'linear-gradient(135deg,rgba(236,72,153,.14),rgba(124,58,237,.14))',
             padding: 'clamp(36px,6vw,64px)',
             textAlign: 'center',
             overflow: 'hidden',
+            boxShadow: shadowStyle,
           }}
         >
           <div
@@ -1643,7 +1671,7 @@ export default function LandingPage() {
               width: 480,
               height: 340,
               background: `radial-gradient(circle,${ACCENT} 0%,transparent 62%)`,
-              opacity: 0.3,
+              opacity: isLight ? 0.2 : 0.3,
               filter: 'blur(50px)',
               pointerEvents: 'none',
             }}
@@ -1655,6 +1683,7 @@ export default function LandingPage() {
                 fontSize: 'clamp(28px,4vw,44px)',
                 fontWeight: 900,
                 letterSpacing: '-.02em',
+                color: isLight ? '#0f172a' : '#fff',
               }}
             >
               Transforme sua bio num funil de verdade
@@ -1665,7 +1694,7 @@ export default function LandingPage() {
                 maxWidth: 480,
                 fontSize: 16.5,
                 lineHeight: 1.6,
-                color: '#d4b8e8',
+                color: isLight ? '#4f46e5' : '#d4b8e8',
               }}
             >
               Crie sua primeira página em 60 segundos e veja os cliques chegarem.
@@ -1694,7 +1723,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ borderTop: '1px solid #11203a', background: '#060d1c' }}>
+      <footer style={{ borderTop: `1px solid ${footerBorderColor}`, background: footerBg }}>
         <div
           style={{
             maxWidth: 1180,
@@ -1709,16 +1738,16 @@ export default function LandingPage() {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-wordmark-dark.svg" alt="Creators Link" height={24} style={{ height: 24, width: 'auto' }} />
+            <img src={isLight ? "/logo-wordmark-light.svg" : "/logo-wordmark-dark.svg"} alt="Creators Link" height={24} style={{ height: 24, width: 'auto' }} />
           </div>
-          <div style={{ display: 'flex', gap: 22, fontSize: 13.5, color: '#94a3b8' }}>
+          <div style={{ display: 'flex', gap: 22, fontSize: 13.5, color: mutedTextColor }}>
             {[
               ['#recursos', 'Recursos'],
               ['#precos', 'Preços'],
               ['#faq', 'Dúvidas'],
               ['#', 'Privacidade'],
             ].map(([href, label]) => (
-              <a key={label} href={href} style={{ color: '#94a3b8', textDecoration: 'none' }}>
+              <a key={label} href={href} style={{ color: mutedTextColor, textDecoration: 'none' }}>
                 {label}
               </a>
             ))}
@@ -1729,12 +1758,12 @@ export default function LandingPage() {
               alignItems: 'center',
               gap: 9,
               fontSize: 12,
-              color: '#52525b',
+              color: isLight ? '#71717a' : '#52525b',
             }}
           >
             <span
               style={{
-                border: '1px solid #3f3f46',
+                border: `1px solid ${isLight ? '#d4d4d8' : '#3f3f46'}`,
                 borderRadius: 6,
                 padding: '2px 7px',
                 fontWeight: 600,
@@ -1758,14 +1787,15 @@ export default function LandingPage() {
 }
 
 // ─── FAQ accordion (client would need 'use client' — using details/summary for zero-JS) ──
-function FaqItem({ q, a }: { q: string; a: string }) {
+function FaqItem({ q, a, isLight }: { q: string; a: string; isLight: boolean }) {
   return (
     <details
       style={{
-        border: '1px solid #1e293b',
+        border: isLight ? '1px solid #e2e8f0' : '1px solid #1e293b',
         borderRadius: 14,
-        background: '#0b1220',
+        background: isLight ? '#ffffff' : '#0b1220',
         overflow: 'hidden',
+        boxShadow: isLight ? '0 4px 6px -1px rgba(0,0,0,0.01), 0 2px 4px -1px rgba(0,0,0,0.01)' : 'none',
       }}
       className="group"
     >
@@ -1782,15 +1812,15 @@ function FaqItem({ q, a }: { q: string; a: string }) {
           fontFamily: 'inherit',
         }}
       >
-        <span style={{ fontSize: 15.5, fontWeight: 600, color: '#f1f5f9' }}>{q}</span>
+        <span style={{ fontSize: 15.5, fontWeight: 600, color: isLight ? '#0f172a' : '#f1f5f9' }}>{q}</span>
         <span
           style={{
             flexShrink: 0,
             width: 24,
             height: 24,
             borderRadius: 7,
-            background: 'rgba(255,255,255,.05)',
-            border: '1px solid #1e293b',
+            background: isLight ? 'rgba(0,0,0,.03)' : 'rgba(255,255,255,.05)',
+            border: isLight ? '1px solid #e2e8f0' : '1px solid #1e293b',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -1802,7 +1832,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
           +
         </span>
       </summary>
-      <div style={{ padding: '0 20px 20px', fontSize: 14.5, lineHeight: 1.65, color: '#94a3b8' }}>
+      <div style={{ padding: '0 20px 20px', fontSize: 14.5, lineHeight: 1.65, color: isLight ? '#475569' : '#94a3b8' }}>
         {a}
       </div>
     </details>
