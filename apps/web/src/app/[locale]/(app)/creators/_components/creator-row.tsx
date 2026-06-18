@@ -26,7 +26,7 @@ export function CreatorRow({ c, selected, onSelect }: Props) {
   }
 
   // Format decimal separator based on locale
-  const formattedChange = locale === 'pt-BR' || locale === 'es'
+  const formattedChange = locale === 'br' || locale === 'es'
     ? String(c.change).replace('.', ',')
     : String(c.change)
 

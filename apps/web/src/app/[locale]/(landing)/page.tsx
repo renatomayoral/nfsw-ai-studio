@@ -1,10 +1,6 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { LandingNav } from './_components/landing-nav'
-import { useTranslations, useLocale } from 'next-intl'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 const ACCENT = '#ec4899'
 
@@ -70,30 +66,29 @@ function IconPlay() {
 // ─── FAQ data is loaded via t() inside the component ─────────────────────────
 const FAQ_KEYS = ['1', '2', '3', '4', '5', '6', '7'] as const
 
+type Props = {
+  params: Promise<{ locale: string }>
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
-export default function LandingPage() {
-  const t = useTranslations()
-  const locale = useLocale()
-  const { theme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+export default async function LandingPage({ params }: Props) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations()
 
-  const isLight = mounted && theme === 'light'
-
-  // Dynamic theme colors
-  const bgColor = isLight ? '#ffffff' : '#020817'
-  const textColor = isLight ? '#0f172a' : '#f8fafc'
-  const mutedTextColor = isLight ? '#475569' : '#a3b1c6'
-  const lightMutedTextColor = isLight ? '#64748b' : '#94a3b8'
-  const cardBg = isLight ? '#ffffff' : '#0b1220'
-  const cardInnerBg = isLight ? '#f8fafc' : '#0e1621'
-  const borderColor = isLight ? '#e2e8f0' : '#1e293b'
-  const navBorderColor = isLight ? '#e2e8f0' : '#11203a'
-  const footerBg = isLight ? '#f8fafc' : '#060d1c'
-  const footerBorderColor = isLight ? '#e2e8f0' : '#11203a'
-  const shadowStyle = isLight ? '0 10px 30px -15px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.02)' : 'none'
-  const cardBorderColor = isLight ? '#e2e8f0' : '#1e293b'
-  const dividerBg = isLight ? '#e2e8f0' : '#1e293b'
+  // Theme colors - strictly dark mode
+  const bgColor = '#020817'
+  const textColor = '#f8fafc'
+  const mutedTextColor = '#a3b1c6'
+  const lightMutedTextColor = '#94a3b8'
+  const cardBg = '#0b1220'
+  const borderColor = '#1e293b'
+  const navBorderColor = '#11203a'
+  const footerBg = '#060d1c'
+  const footerBorderColor = '#11203a'
+  const shadowStyle = 'none'
+  const cardBorderColor = '#1e293b'
+  const dividerBg = '#1e293b'
 
   return (
     <div
@@ -204,7 +199,7 @@ export default function LandingPage() {
                 maxWidth: 480,
                 fontSize: 17,
                 lineHeight: 1.65,
-                color: isLight ? '#475569' : '#a3b1c6',
+                color: '#a3b1c6',
               }}
             >
               {t('hero.description')}
@@ -236,9 +231,9 @@ export default function LandingPage() {
                   gap: 9,
                   padding: '14px 22px',
                   borderRadius: 11,
-                  background: isLight ? 'rgba(0,0,0,.04)' : 'rgba(255,255,255,.05)',
+                  background: 'rgba(255,255,255,.05)',
                   border: `1px solid ${borderColor}`,
-                  color: isLight ? '#0f172a' : '#e2e8f0',
+                  color: '#e2e8f0',
                   fontSize: 15,
                   fontWeight: 600,
                   textDecoration: 'none',
@@ -273,7 +268,7 @@ export default function LandingPage() {
                 borderRadius: 20,
                 border: `1px solid ${borderColor}`,
                 background: cardBg,
-                boxShadow: isLight ? '0 20px 40px -15px rgba(0,0,0,.08)' : '0 40px 90px -30px rgba(0,0,0,.7)',
+                boxShadow: '0 40px 90px -30px rgba(0,0,0,.7)',
                 overflow: 'hidden',
               }}
             >
@@ -300,7 +295,7 @@ export default function LandingPage() {
                     fontFamily: 'ui-monospace,monospace',
                   }}
                 >
-                  creatorslink.org/criadoras
+                  {t('hero.mockUrl')}
                 </span>
               </div>
               <div style={{ padding: 18 }}>
@@ -308,7 +303,7 @@ export default function LandingPage() {
                   <div
                     style={{ flex: 1, border: `1px solid ${borderColor}`, borderRadius: 12, padding: 12 }}
                   >
-                    <div style={{ fontSize: 11, color: mutedTextColor }}>Cliques · 30d</div>
+                    <div style={{ fontSize: 11, color: mutedTextColor }}>{t('hero.mockClicks30d')}</div>
                     <div style={{ fontSize: 20, fontWeight: 800, marginTop: 4 }}>45.300</div>
                     <div style={{ fontSize: 11, color: '#34d399', fontWeight: 600, marginTop: 2 }}>
                       +9,7%
@@ -317,15 +312,15 @@ export default function LandingPage() {
                   <div
                     style={{ flex: 1, border: `1px solid ${borderColor}`, borderRadius: 12, padding: 12 }}
                   >
-                    <div style={{ fontSize: 11, color: mutedTextColor }}>Top plataforma</div>
+                    <div style={{ fontSize: 11, color: mutedTextColor }}>{t('hero.mockTopPlatform')}</div>
                     <div style={{ fontSize: 20, fontWeight: 800, marginTop: 4 }}>OnlyFans</div>
                     <div style={{ fontSize: 11, color: lightMutedTextColor, marginTop: 2 }}>
-                      52% dos cliques
+                      {t('hero.mockTopPlatformPct')}
                     </div>
                   </div>
                 </div>
                 <div style={{ fontSize: 11, color: mutedTextColor, marginBottom: 9 }}>
-                  Cliques · 14 dias
+                  {t('hero.mockClicks14d')}
                 </div>
                 <div
                   style={{
@@ -372,7 +367,7 @@ export default function LandingPage() {
                         </span>
                         <span style={{ color: '#94a3b8' }}>{pct}%</span>
                       </div>
-                      <div style={{ height: 6, borderRadius: 99, background: isLight ? '#e2e8f0' : '#131c2e' }}>
+                      <div style={{ height: 6, borderRadius: 99, background: '#131c2e' }}>
                         <div
                           style={{
                             height: '100%',
@@ -397,15 +392,15 @@ export default function LandingPage() {
                 width: 176,
                 borderRadius: 26,
                 padding: 7,
-                background: isLight ? 'linear-gradient(160deg,#e2e8f0,#cbd5e1)' : 'linear-gradient(160deg,#26262b,#121214)',
-                boxShadow: isLight ? '0 15px 30px -10px rgba(0,0,0,0.1)' : `0 30px 60px -20px rgba(236,72,153,.5)`,
+                background: 'linear-gradient(160deg,#26262b,#121214)',
+                boxShadow: `0 30px 60px -20px rgba(236,72,153,.5)`,
                 animation: 'lpfloat 8s ease-in-out infinite',
               }}
             >
               <div
                 style={{
                   borderRadius: 20,
-                  background: isLight ? 'radial-gradient(180px 150px at 50% 0%,#fce7f3,#ffffff 62%)' : 'radial-gradient(180px 150px at 50% 0%,#2a1230,#0a0a0c 62%)',
+                  background: 'radial-gradient(180px 150px at 50% 0%,#2a1230,#0a0a0c 62%)',
                   padding: '20px 14px 16px',
                   textAlign: 'center',
                 }}
@@ -425,7 +420,7 @@ export default function LandingPage() {
                       position: 'absolute',
                       inset: 3,
                       borderRadius: '50%',
-                      background: isLight ? '#ffffff' : '#0a0a0c',
+                      background: '#0a0a0c',
                     }}
                   />
                   <div
@@ -445,8 +440,8 @@ export default function LandingPage() {
                     B
                   </div>
                 </div>
-                <div style={{ marginTop: 10, fontSize: 13, fontWeight: 800, color: isLight ? '#0f172a' : '#fff' }}>
-                  Babi Barelli
+                <div style={{ marginTop: 10, fontSize: 13, fontWeight: 800, color: '#fff' }}>
+                  {t('hero.mockCreatorName')}
                 </div>
                 <div style={{ marginTop: 9, display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <div
@@ -465,11 +460,11 @@ export default function LandingPage() {
                     style={{
                       padding: 8,
                       borderRadius: 9,
-                      background: isLight ? 'rgba(0,0,0,.03)' : 'rgba(255,255,255,.05)',
-                      border: isLight ? '1px solid rgba(0,0,0,.06)' : '1px solid rgba(255,255,255,.08)',
+                      background: 'rgba(255,255,255,.05)',
+                      border: '1px solid rgba(255,255,255,.08)',
                       fontSize: 10.5,
                       fontWeight: 600,
-                      color: isLight ? '#0f172a' : '#e2e8f0',
+                      color: '#e2e8f0',
                     }}
                   >
                     Instagram
@@ -478,11 +473,11 @@ export default function LandingPage() {
                     style={{
                       padding: 8,
                       borderRadius: 9,
-                      background: isLight ? 'rgba(0,0,0,.03)' : 'rgba(255,255,255,.05)',
-                      border: isLight ? '1px solid rgba(0,0,0,.06)' : '1px solid rgba(255,255,255,.08)',
+                      background: 'rgba(255,255,255,.05)',
+                      border: '1px solid rgba(255,255,255,.08)',
                       fontSize: 10.5,
                       fontWeight: 600,
-                      color: isLight ? '#0f172a' : '#e2e8f0',
+                      color: '#e2e8f0',
                     }}
                   >
                     Privacy
@@ -515,7 +510,7 @@ export default function LandingPage() {
           }}
         >
           {[
-            { val: locale === 'en' ? '45k+' : '45 mil+', label: t('stats.clicks') },
+            { val: t('stats.clicksVal'), label: t('stats.clicks') },
             { val: '5', label: t('stats.platforms') },
             { val: '60s', label: t('stats.publish') },
             { val: '100%', label: t('stats.lighthouse') },
@@ -685,6 +680,62 @@ export default function LandingPage() {
               title: t('features.card6Title'),
               desc: t('features.card6Desc'),
             },
+            {
+              icon: (
+                <svg
+                  viewBox="0 0 24 24"
+                  width="22"
+                  height="22"
+                  fill="none"
+                  stroke="#fbbf24"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 2a14.5 14.5 0 0 0 0 20M12 2a14.5 14.5 0 0 1 0 20M2 12h20" />
+                </svg>
+              ),
+              bg: 'rgba(251,191,36,.12)',
+              border: 'rgba(251,191,36,.25)',
+              title: t('features.card7Title'),
+              desc: t('features.card7Desc'),
+            },
+            {
+              icon: (
+                <svg
+                  viewBox="0 0 24 24"
+                  width="22"
+                  height="22"
+                  fill="none"
+                  stroke="#34d399"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5" />
+                  <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.5-1.5" />
+                </svg>
+              ),
+              bg: 'rgba(52,211,153,.12)',
+              border: 'rgba(52,211,153,.25)',
+              title: t('features.card8Title'),
+              desc: t('features.card8Desc'),
+            },
+            {
+              icon: (
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="1" y="4" width="22" height="16" rx="2" stroke="#a78bfa" />
+                  <path d="M1 10h22" stroke="#a78bfa" />
+                  <circle cx="6" cy="15" r="1.5" fill="#a78bfa" stroke="none" />
+                  <circle cx="10" cy="15" r="1.5" fill="#a78bfa" stroke="none" opacity=".5" />
+                </svg>
+              ),
+              bg: 'rgba(124,58,237,.12)',
+              border: 'rgba(124,58,237,.25)',
+              title: t('features.card9Title'),
+              desc: t('features.card9Desc'),
+            },
           ].map(({ icon, bg, border, title, desc }) => (
             <div
               key={title}
@@ -795,7 +846,7 @@ export default function LandingPage() {
           style={{
             border: `1px solid ${borderColor}`,
             borderRadius: 24,
-            background: isLight ? 'linear-gradient(160deg,#ffffff,#f8fafc)' : 'linear-gradient(160deg,#0b1220,#070e1c)',
+            background: 'linear-gradient(160deg,#0b1220,#070e1c)',
             padding: 'clamp(28px,5vw,56px)',
             display: 'flex',
             gap: 48,
@@ -822,7 +873,7 @@ export default function LandingPage() {
                 fontSize: 'clamp(26px,3.2vw,36px)',
                 fontWeight: 800,
                 letterSpacing: '-.02em',
-                color: isLight ? '#0f172a' : '#fff',
+                color: '#fff',
               }}
             >
               {t('showcase.headline')}
@@ -862,7 +913,7 @@ export default function LandingPage() {
                   marginBottom: 16,
                 }}
               >
-                <span style={{ fontSize: 13, fontWeight: 700, color: isLight ? '#475569' : '#cbd5e1' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#cbd5e1' }}>
                   {t('showcase.widgetTitle')}
                 </span>
                 <span style={{ fontSize: 12, color: '#64748b' }}>35.300 {t('showcase.widgetTotal')}</span>
@@ -891,10 +942,10 @@ export default function LandingPage() {
                         {label}
                       </span>
                       <span style={{ color: '#94a3b8' }}>
-                        <strong style={{ color: isLight ? '#0f172a' : '#f8fafc' }}>{n}</strong> · {pct}%
+                        <strong style={{ color: '#f8fafc' }}>{n}</strong> · {pct}%
                       </span>
                     </div>
-                    <div style={{ height: 7, borderRadius: 99, background: isLight ? '#e2e8f0' : '#131c2e' }}>
+                    <div style={{ height: 7, borderRadius: 99, background: '#131c2e' }}>
                       <div
                         style={{
                           height: '100%',
@@ -919,9 +970,9 @@ export default function LandingPage() {
       >
         <div
           style={{
-            border: isLight ? '1px solid #bae6fd' : '1px solid #15324a',
+            border: '1px solid #15324a',
             borderRadius: 24,
-            background: isLight ? 'linear-gradient(160deg,#e0f2fe,#f0f9ff 62%)' : 'linear-gradient(160deg,#08263b,#070e1c 62%)',
+            background: 'linear-gradient(160deg,#08263b,#070e1c 62%)',
             padding: 'clamp(28px,5vw,56px)',
             display: 'flex',
             gap: 52,
@@ -936,9 +987,9 @@ export default function LandingPage() {
                 maxWidth: 380,
                 margin: '0 auto',
                 borderRadius: 22,
-                border: isLight ? '1px solid #bae6fd' : '1px solid #1e3a52',
-                background: isLight ? '#f3f4f6' : '#0e1621',
-                boxShadow: isLight ? '0 30px 60px -25px rgba(34,158,217,.2)' : '0 40px 90px -30px rgba(34,158,217,.45)',
+                border: '1px solid #1e3a52',
+                background: '#0e1621',
+                boxShadow: '0 40px 90px -30px rgba(34,158,217,.45)',
                 overflow: 'hidden',
               }}
             >
@@ -995,20 +1046,19 @@ export default function LandingPage() {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 10,
-                  background: isLight ? '#f3f4f6' : '#0e1621',
+                  background: '#0e1621',
                 }}
               >
                 <div
                   style={{
                     alignSelf: 'flex-start',
                     maxWidth: '88%',
-                    background: isLight ? '#ffffff' : '#182533',
+                    background: '#182533',
                     borderRadius: '14px 14px 14px 4px',
                     padding: '11px 13px',
-                    boxShadow: isLight ? '0 1px 2px rgba(0,0,0,0.05)' : undefined,
                   }}
                 >
-                  <div style={{ fontSize: 13, lineHeight: 1.5, color: isLight ? '#1f2937' : '#e8eef4' }}>
+                  <div style={{ fontSize: 13, lineHeight: 1.5, color: '#e8eef4' }}>
                     {t('telegram.botWelcome')}
                   </div>
                 </div>
@@ -1022,9 +1072,9 @@ export default function LandingPage() {
                   }}
                 >
                   {[
-                    { label: t('telegram.planMonthly'), price: locale === 'pt-BR' ? 'R$29,90' : '$5.90', featured: false },
-                    { label: t('telegram.planQuarterly'), price: locale === 'pt-BR' ? 'R$74,90' : '$14.90', featured: false },
-                    { label: t('telegram.planAnnual'), price: locale === 'pt-BR' ? 'R$249' : '$49.90', featured: true },
+                    { label: t('telegram.planMonthly'), price: t('telegram.priceMonthly'), featured: false },
+                    { label: t('telegram.planQuarterly'), price: t('telegram.priceQuarterly'), featured: false },
+                    { label: t('telegram.planAnnual'), price: t('telegram.priceAnnual'), featured: true },
                   ].map(({ label, price, featured }) => (
                     <div
                       key={label}
@@ -1036,15 +1086,15 @@ export default function LandingPage() {
                         borderRadius: 11,
                         background: featured
                           ? 'linear-gradient(120deg,#229ED9,#1c8bc0)'
-                          : (isLight ? '#ffffff' : '#1d2b3a'),
-                        border: `1px solid ${featured ? '#2fa8e0' : (isLight ? '#e5e7eb' : '#294258')}`,
+                          : '#1d2b3a',
+                        border: `1px solid ${featured ? '#2fa8e0' : '#294258'}`,
                         boxShadow: featured
                           ? '0 8px 20px -8px rgba(34,158,217,.7)'
-                          : (isLight ? '0 1px 2px rgba(0,0,0,0.02)' : undefined),
+                          : undefined,
                       }}
                     >
                       <span
-                        style={{ fontSize: 13, fontWeight: featured ? 700 : 600, color: featured ? '#fff' : (isLight ? '#1f2937' : '#fff') }}
+                        style={{ fontSize: 13, fontWeight: featured ? 700 : 600, color: '#fff' }}
                       >
                         {label}
                       </span>
@@ -1052,7 +1102,7 @@ export default function LandingPage() {
                         style={{
                           fontSize: 13,
                           fontWeight: 800,
-                          color: featured ? '#fff' : (isLight ? '#229ed9' : '#5cc6f0'),
+                          color: featured ? '#fff' : '#5cc6f0',
                         }}
                       >
                         {price}
@@ -1064,10 +1114,9 @@ export default function LandingPage() {
                   style={{
                     alignSelf: 'flex-end',
                     maxWidth: '70%',
-                    background: isLight ? '#229ed9' : '#2b5278',
+                    background: '#2b5278',
                     borderRadius: '14px 14px 4px 14px',
                     padding: '9px 13px',
-                    boxShadow: isLight ? '0 1px 2px rgba(0,0,0,0.05)' : undefined,
                   }}
                 >
                   <div style={{ fontSize: 13, color: '#fff' }}>{t('telegram.userSelection')}</div>
@@ -1076,10 +1125,10 @@ export default function LandingPage() {
                   style={{
                     alignSelf: 'flex-start',
                     maxWidth: '90%',
-                    background: isLight ? '#ecfdf5' : '#182533',
+                    background: '#182533',
                     borderRadius: '14px 14px 14px 4px',
                     padding: '12px 13px',
-                    border: isLight ? '1px solid #a7f3d0' : '1px solid #1f3a2e',
+                    border: '1px solid #1f3a2e',
                   }}
                 >
                   <div
@@ -1089,7 +1138,7 @@ export default function LandingPage() {
                       gap: 8,
                       fontSize: 13,
                       fontWeight: 700,
-                      color: isLight ? '#059669' : '#6ee7b7',
+                      color: '#6ee7b7',
                     }}
                   >
                     <svg
@@ -1097,7 +1146,7 @@ export default function LandingPage() {
                       width="16"
                       height="16"
                       fill="none"
-                      stroke={isLight ? '#059669' : '#6ee7b7'}
+                      stroke='#6ee7b7'
                       strokeWidth="2.6"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -1106,7 +1155,7 @@ export default function LandingPage() {
                     </svg>
                     {t('telegram.paymentConfirmed')}
                   </div>
-                  <div style={{ fontSize: 12.5, lineHeight: 1.5, color: isLight ? '#374151' : '#aebfcf', marginTop: 6 }}>
+                  <div style={{ fontSize: 12.5, lineHeight: 1.5, color: '#aebfcf', marginTop: 6 }}>
                     {t('telegram.accessReleased')}
                   </div>
                 </div>
@@ -1127,10 +1176,10 @@ export default function LandingPage() {
                 fontSize: 12,
                 fontWeight: 700,
                 letterSpacing: '.04em',
-                color: isLight ? '#0284c7' : '#5cc6f0',
+                color: '#5cc6f0',
               }}
             >
-              <svg viewBox="0 0 24 24" width="14" height="14" fill={isLight ? '#0284c7' : '#5cc6f0'}>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill='#5cc6f0'>
                 <path d="M21.9 4.3l-3.1 14.6c-.2 1-.9 1.3-1.7.8l-4.6-3.4-2.2 2.1c-.3.3-.5.5-.9.5l.3-4.5L18 6.2c.4-.3-.1-.5-.6-.2L7.2 12.6l-4.4-1.4c-1-.3-1-.9.2-1.4l17.2-6.6c.8-.3 1.5.2 1.2 1.4z" />
               </svg>
               {t('telegram.badge')}
@@ -1141,12 +1190,12 @@ export default function LandingPage() {
                 fontSize: 'clamp(26px,3.2vw,38px)',
                 fontWeight: 800,
                 letterSpacing: '-.02em',
-                color: isLight ? '#0f172a' : '#fff',
+                color: '#fff',
               }}
             >
               {(() => {
                 const headline = t('telegram.headline');
-                const splitIndex = headline.toLowerCase().indexOf(locale === 'en' ? 'without' : (locale === 'es' ? 'sin' : 'sem'));
+                const splitIndex = headline.toLowerCase().indexOf(t('telegram.headlineSplitWord'));
                 const part1 = splitIndex !== -1 ? headline.slice(0, splitIndex) : headline;
                 const part2 = splitIndex !== -1 ? headline.slice(splitIndex) : '';
                 return (
@@ -1166,21 +1215,51 @@ export default function LandingPage() {
                 );
               })()}
             </h2>
-            <p style={{ margin: '16px 0 0', fontSize: 16, lineHeight: 1.65, color: isLight ? '#475569' : '#a3b1c6' }}>
+            <p style={{ margin: '16px 0 0', fontSize: 16, lineHeight: 1.65, color: '#a3b1c6' }}>
               {t('telegram.description')}
             </p>
+            {/* Payment method badges */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 18 }}>
+              {[
+                { label: 'Stripe', color: '#635bff', dot: '#635bff' },
+                { label: 'Pix', color: '#32bcad', dot: '#32bcad' },
+                { label: 'Pix Automático', color: '#32bcad', dot: '#32bcad', opacity: 0.75 },
+                { label: 'Crypto', color: '#f59e0b', dot: '#f59e0b' },
+              ].map(({ label, color, dot, opacity = 1 }) => (
+                <span
+                  key={label}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '5px 11px',
+                    borderRadius: 999,
+                    border: `1px solid ${color}55`,
+                    background: `${color}18`,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color,
+                    opacity,
+                    letterSpacing: '.02em',
+                  }}
+                >
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: dot }} />
+                  {label}
+                </span>
+              ))}
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 26 }}>
               {[
                 {
-                  bg: isLight ? 'rgba(2,132,199,.08)' : 'rgba(34,158,217,.14)',
-                  border: isLight ? 'rgba(2,132,199,.2)' : 'rgba(34,158,217,.3)',
+                  bg: 'rgba(34,158,217,.14)',
+                  border: 'rgba(34,158,217,.3)',
                   icon: (
                     <svg
                       viewBox="0 0 24 24"
                       width="17"
                       height="17"
                       fill="none"
-                      stroke={isLight ? '#0284c7' : '#5cc6f0'}
+                      stroke='#5cc6f0'
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -1191,7 +1270,7 @@ export default function LandingPage() {
                   ),
                   text: (
                     <>
-                      <strong style={{ color: isLight ? '#0f172a' : '#fff' }}>{t('telegram.feature1Title')}</strong> — {t('telegram.feature1Desc')}
+                      <strong style={{ color: '#fff' }}>{t('telegram.feature1Title')}</strong> — {t('telegram.feature1Desc')}
                     </>
                   ),
                 },
@@ -1215,7 +1294,7 @@ export default function LandingPage() {
                   ),
                   text: (
                     <>
-                      <strong style={{ color: isLight ? '#0f172a' : '#fff' }}>{t('telegram.feature2Title')}</strong> — {t('telegram.feature2Desc')}
+                      <strong style={{ color: '#fff' }}>{t('telegram.feature2Title')}</strong> — {t('telegram.feature2Desc')}
                     </>
                   ),
                 },
@@ -1238,7 +1317,7 @@ export default function LandingPage() {
                   ),
                   text: (
                     <>
-                      <strong style={{ color: isLight ? '#0f172a' : '#fff' }}>{t('telegram.feature3Title')}</strong> — {t('telegram.feature3Desc')}
+                      <strong style={{ color: '#fff' }}>{t('telegram.feature3Title')}</strong> — {t('telegram.feature3Desc')}
                     </>
                   ),
                 },
@@ -1262,7 +1341,7 @@ export default function LandingPage() {
                   ),
                   text: (
                     <>
-                      <strong style={{ color: isLight ? '#0f172a' : '#fff' }}>{t('telegram.feature4Title')}</strong> — {t('telegram.feature4Desc')}
+                      <strong style={{ color: '#fff' }}>{t('telegram.feature4Title')}</strong> — {t('telegram.feature4Desc')}
                     </>
                   ),
                 },
@@ -1284,7 +1363,7 @@ export default function LandingPage() {
                     {icon}
                   </span>
                   <span
-                    style={{ fontSize: 14.5, lineHeight: 1.55, color: isLight ? '#334155' : '#cbd5e1', paddingTop: 5 }}
+                    style={{ fontSize: 14.5, lineHeight: 1.55, color: '#cbd5e1', paddingTop: 5 }}
                   >
                     {text}
                   </span>
@@ -1305,7 +1384,7 @@ export default function LandingPage() {
                 fontSize: 14.5,
                 fontWeight: 700,
                 textDecoration: 'none',
-                boxShadow: isLight ? '0 10px 20px -8px rgba(34,158,217,.4)' : '0 14px 30px -10px rgba(34,158,217,.65)',
+                boxShadow: '0 14px 30px -10px rgba(34,158,217,.65)',
               }}
             >
               {t('telegram.button')} <IconArrow />
@@ -1334,12 +1413,12 @@ export default function LandingPage() {
               fontSize: 'clamp(28px,3.6vw,40px)',
               fontWeight: 800,
               letterSpacing: '-.02em',
-              color: isLight ? '#0f172a' : '#fff',
+              color: '#fff',
             }}
           >
             {t('pricing.headline')}
           </h2>
-          <p style={{ margin: '14px 0 0', fontSize: 16, color: isLight ? '#475569' : '#a3b1c6' }}>
+          <p style={{ margin: '14px 0 0', fontSize: 16, color: '#a3b1c6' }}>
             {t('pricing.sub')}
           </p>
         </div>
@@ -1362,13 +1441,13 @@ export default function LandingPage() {
               boxShadow: shadowStyle,
             }}
           >
-            <div style={{ fontSize: 15, fontWeight: 700 }}>Free</div>
+            <div style={{ fontSize: 15, fontWeight: 700 }}>{t('pricing.freeName')}</div>
             <div style={{ marginTop: 14, display: 'flex', alignItems: 'baseline', gap: 6 }}>
-              <span style={{ fontSize: 40, fontWeight: 900, letterSpacing: '-.02em' }}>$0</span>
-              <span style={{ fontSize: 14, color: lightMutedTextColor }}>{locale === 'en' ? '/month' : (locale === 'es' ? '/mes' : '/mês')}</span>
+              <span style={{ fontSize: 40, fontWeight: 900, letterSpacing: '-.02em' }}>{t('pricing.freePrice')}</span>
+              <span style={{ fontSize: 14, color: lightMutedTextColor }}>{t('pricing.perMonth')}</span>
             </div>
             <div style={{ fontSize: 12.5, color: mutedTextColor, marginTop: 4, fontWeight: 600 }}>
-              {locale === 'en' ? 'Fees: 9.9% + $0.30 per transaction' : (locale === 'es' ? 'Tasas: 9.9% + $0.30 por transacción' : 'Taxas: 9,9% + $0,30 por transação')}
+              {t('pricing.freeFees')}
             </div>
             <p style={{ margin: '10px 0 0', fontSize: 13.5, color: mutedTextColor, lineHeight: 1.5 }}>
               {t('pricing.starterDesc')}
@@ -1381,9 +1460,9 @@ export default function LandingPage() {
                 marginTop: 20,
                 padding: 12,
                 borderRadius: 10,
-                background: isLight ? 'rgba(0,0,0,.03)' : 'rgba(255,255,255,.05)',
+                background: 'rgba(255,255,255,.05)',
                 border: `1px solid ${cardBorderColor}`,
-                color: isLight ? '#0f172a' : '#e2e8f0',
+                color: '#e2e8f0',
                 fontSize: 14,
                 fontWeight: 600,
                 textDecoration: 'none',
@@ -1402,9 +1481,9 @@ export default function LandingPage() {
               }}
             >
               {[
-                locale === 'en' ? 'Fees: 9.9% + $0.30 per transaction' : (locale === 'es' ? 'Tasas: 9.9% + $0.30 por transacción' : 'Taxas: 9,9% + $0,30 por transação'),
-                locale === 'en' ? 'Telegram Sales Bot' : (locale === 'es' ? 'Bot de ventas de Telegram' : 'Telegram Bot de Vendas'),
-                locale === 'en' ? 'CreatorsLink branding on link-in-bio and bot' : (locale === 'es' ? 'Marca CreatorsLink en link-in-bio y bot' : 'Marca CreatorsLink no link-in-bio e no bot'),
+                t('pricing.freeFeature1'),
+                t('pricing.freeFeature2'),
+                t('pricing.freeFeature3'),
               ].map((f) => (
                 <span key={f} style={{ display: 'flex', gap: 9 }}>
                   <IconCheck />
@@ -1420,9 +1499,9 @@ export default function LandingPage() {
               position: 'relative',
               border: `1.5px solid ${ACCENT}`,
               borderRadius: 20,
-              background: isLight ? `linear-gradient(180deg,rgba(236,72,153,.04),#ffffff)` : `linear-gradient(180deg,rgba(236,72,153,.08),#0b1220)`,
+              background: `linear-gradient(180deg,rgba(236,72,153,.08),#0b1220)`,
               padding: 30,
-              boxShadow: isLight ? '0 25px 60px -25px rgba(236,72,153,.25)' : `0 30px 70px -28px ${ACCENT}`,
+              boxShadow: `0 30px 70px -28px ${ACCENT}`,
             }}
           >
             <span
@@ -1441,15 +1520,15 @@ export default function LandingPage() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {locale === 'en' ? 'SWEET SPOT' : (locale === 'es' ? 'PUNTO IDEAL' : 'DOCE PEDAÇO DO MEIO')}
+              {t('pricing.sweetSpot')}
             </span>
-            <div style={{ fontSize: 15, fontWeight: 700 }}>Creator / Growth</div>
+            <div style={{ fontSize: 15, fontWeight: 700 }}>{t('pricing.creatorName')}</div>
             <div style={{ marginTop: 14, display: 'flex', alignItems: 'baseline', gap: 6 }}>
-              <span style={{ fontSize: 40, fontWeight: 900, letterSpacing: '-.02em' }}>$19</span>
-              <span style={{ fontSize: 14, color: lightMutedTextColor }}>{locale === 'en' ? '/month' : (locale === 'es' ? '/mes' : '/mês')}</span>
+              <span style={{ fontSize: 40, fontWeight: 900, letterSpacing: '-.02em' }}>{t('pricing.creatorPrice')}</span>
+              <span style={{ fontSize: 14, color: lightMutedTextColor }}>{t('pricing.perMonth')}</span>
             </div>
             <div style={{ fontSize: 12.5, color: ACCENT, marginTop: 4, fontWeight: 600 }}>
-              {locale === 'en' ? 'Fees: 6.9% + $0.30 per transaction' : (locale === 'es' ? 'Tasas: 6.9% + $0.30 por transacción' : 'Taxas: 6,9% + $0,30 por transação')}
+              {t('pricing.creatorFees')}
             </div>
             <p style={{ margin: '10px 0 0', fontSize: 13.5, color: mutedTextColor, lineHeight: 1.5 }}>
               {t('pricing.proDesc')}
@@ -1483,11 +1562,11 @@ export default function LandingPage() {
               }}
             >
               {[
-                locale === 'en' ? 'Fees: 6.9% + $0.30 per transaction' : (locale === 'es' ? 'Tasas: 6.9% + $0.30 por transacción' : 'Taxas: 6,9% + $0,30 por transação'),
-                locale === 'en' ? 'No CreatorsLink branding on profile' : (locale === 'es' ? 'Sin marca de CreatorsLink en perfil' : 'Sem marca da CreatorsLink no perfil'),
-                locale === 'en' ? 'Custom personal domain' : (locale === 'es' ? 'Dominio propio personalizado' : 'Domínio próprio personalizado'),
-                locale === 'en' ? 'Unlimited Telegram Bot' : (locale === 'es' ? 'Bot de Telegram ilimitado' : 'Telegram Bot ilimitado'),
-                locale === 'en' ? 'Easy fixed billing and high margin' : (locale === 'es' ? 'Fijo fácil de cobrar y alto margen' : 'Fixo fácil de cobrar e alta margem'),
+                t('pricing.creatorFeature1'),
+                t('pricing.creatorFeature2'),
+                t('pricing.creatorFeature3'),
+                t('pricing.creatorFeature4'),
+                t('pricing.creatorFeature5'),
               ].map((f) => (
                 <span key={f} style={{ display: 'flex', gap: 9 }}>
                   <IconCheck color={ACCENT} />
@@ -1507,13 +1586,13 @@ export default function LandingPage() {
               boxShadow: shadowStyle,
             }}
           >
-            <div style={{ fontSize: 15, fontWeight: 700 }}>Pro / Scale</div>
+            <div style={{ fontSize: 15, fontWeight: 700 }}>{t('pricing.proName')}</div>
             <div style={{ marginTop: 14, display: 'flex', alignItems: 'baseline', gap: 6 }}>
-              <span style={{ fontSize: 40, fontWeight: 900, letterSpacing: '-.02em' }}>$79</span>
-              <span style={{ fontSize: 14, color: lightMutedTextColor }}>{locale === 'en' ? '/month' : (locale === 'es' ? '/mes' : '/mês')}</span>
+              <span style={{ fontSize: 40, fontWeight: 900, letterSpacing: '-.02em' }}>{t('pricing.proPrice')}</span>
+              <span style={{ fontSize: 14, color: lightMutedTextColor }}>{t('pricing.perMonth')}</span>
             </div>
             <div style={{ fontSize: 12.5, color: mutedTextColor, marginTop: 4, fontWeight: 600 }}>
-              {locale === 'en' ? 'Fees: 3.9% + $0.30 per transaction' : (locale === 'es' ? 'Tasas: 3.9% + $0.30 por transacción' : 'Taxas: 3,9% + $0,30 por transação')}
+              {t('pricing.proFees')}
             </div>
             <p style={{ margin: '10px 0 0', fontSize: 13.5, color: mutedTextColor, lineHeight: 1.5 }}>
               {t('pricing.agencyDesc')}
@@ -1526,9 +1605,9 @@ export default function LandingPage() {
                 marginTop: 20,
                 padding: 12,
                 borderRadius: 10,
-                background: isLight ? 'rgba(0,0,0,.03)' : 'rgba(255,255,255,.05)',
+                background: 'rgba(255,255,255,.05)',
                 border: `1px solid ${cardBorderColor}`,
-                color: isLight ? '#0f172a' : '#e2e8f0',
+                color: '#e2e8f0',
                 fontSize: 14,
                 fontWeight: 600,
                 textDecoration: 'none',
@@ -1547,11 +1626,11 @@ export default function LandingPage() {
               }}
             >
               {[
-                locale === 'en' ? 'Fees: 3.9% + $0.30 per transaction' : (locale === 'es' ? 'Tasas: 3.9% + $0.30 por transacción' : 'Taxas: 3,9% + $0,30 por transação'),
-                locale === 'en' ? 'Multiple bots and CRM integrations' : (locale === 'es' ? 'Múltiples bots e integraciones CRM' : 'Múltiplos bots e integrações CRM'),
-                locale === 'en' ? 'Webhook integrations for CRM' : (locale === 'es' ? 'Integraciones con webhooks para CRM' : 'Integrações com webhooks para CRM'),
-                locale === 'en' ? '24/7 priority support' : (locale === 'es' ? 'Soporte prioritario 24/7' : 'Suporte prioritário 24/7'),
-                locale === 'en' ? 'Ideal for billing > $3,000/month' : (locale === 'es' ? 'Ideal para facturación > $3,000/mes' : 'Ideal para faturamento > $3.000/mês'),
+                t('pricing.proFeature1'),
+                t('pricing.proFeature2'),
+                t('pricing.proFeature3'),
+                t('pricing.proFeature4'),
+                t('pricing.proFeature5'),
               ].map((f) => (
                 <span key={f} style={{ display: 'flex', gap: 9 }}>
                   <IconCheck />
@@ -1583,7 +1662,7 @@ export default function LandingPage() {
               fontSize: 'clamp(28px,3.6vw,40px)',
               fontWeight: 800,
               letterSpacing: '-.02em',
-              color: isLight ? '#0f172a' : '#fff',
+              color: '#fff',
             }}
           >
             {t('faq.headline')}
@@ -1591,7 +1670,7 @@ export default function LandingPage() {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 40 }}>
           {FAQ_KEYS.map((key) => (
-            <FaqItem key={key} q={t(`faq.q${key}`)} a={t(`faq.a${key}`)} isLight={isLight} />
+            <FaqItem key={key} q={t(`faq.q${key}`)} a={t(`faq.a${key}`)} />
           ))}
         </div>
       </section>
@@ -1601,9 +1680,9 @@ export default function LandingPage() {
         <div
           style={{
             position: 'relative',
-            border: `1px solid rgba(236,72,153,${isLight ? '.2' : '.3'})`,
+            border: '1px solid rgba(236,72,153,.3)',
             borderRadius: 26,
-            background: isLight ? 'linear-gradient(135deg,rgba(236,72,153,.06),rgba(124,58,237,.06))' : 'linear-gradient(135deg,rgba(236,72,153,.14),rgba(124,58,237,.14))',
+            background: 'linear-gradient(135deg,rgba(236,72,153,.14),rgba(124,58,237,.14))',
             padding: 'clamp(36px,6vw,64px)',
             textAlign: 'center',
             overflow: 'hidden',
@@ -1620,7 +1699,7 @@ export default function LandingPage() {
               width: 480,
               height: 340,
               background: `radial-gradient(circle,${ACCENT} 0%,transparent 62%)`,
-              opacity: isLight ? 0.2 : 0.3,
+              opacity: 0.3,
               filter: 'blur(50px)',
               pointerEvents: 'none',
             }}
@@ -1632,7 +1711,7 @@ export default function LandingPage() {
                 fontSize: 'clamp(28px,4vw,44px)',
                 fontWeight: 900,
                 letterSpacing: '-.02em',
-                color: isLight ? '#0f172a' : '#fff',
+                color: '#fff',
               }}
             >
               {t('cta.headline')}
@@ -1643,7 +1722,7 @@ export default function LandingPage() {
                 maxWidth: 480,
                 fontSize: 16.5,
                 lineHeight: 1.6,
-                color: isLight ? '#4f46e5' : '#d4b8e8',
+                color: '#d4b8e8',
               }}
             >
               {t('cta.sub')}
@@ -1687,7 +1766,7 @@ export default function LandingPage() {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={isLight ? "/logo-wordmark-light.svg" : "/logo-wordmark-dark.svg"} alt="Creators Link" height={24} style={{ height: 24, width: 'auto' }} />
+            <img src="/logo-wordmark-dark.svg" alt="Creators Link" height={24} style={{ height: 24, width: 'auto' }} />
           </div>
           <div style={{ display: 'flex', gap: 22, fontSize: 13.5, color: mutedTextColor }}>
             {[
@@ -1707,12 +1786,12 @@ export default function LandingPage() {
               alignItems: 'center',
               gap: 9,
               fontSize: 12,
-              color: isLight ? '#71717a' : '#52525b',
+              color: '#52525b',
             }}
           >
             <span
               style={{
-                border: `1px solid ${isLight ? '#d4d4d8' : '#3f3f46'}`,
+                border: '1px solid #3f3f46',
                 borderRadius: 6,
                 padding: '2px 7px',
                 fontWeight: 600,
@@ -1720,7 +1799,7 @@ export default function LandingPage() {
             >
               18+
             </span>
-            <span>© 2026 CreatorsLink</span>
+            <span>{t('footer.copyright')}</span>
           </div>
         </div>
       </footer>
@@ -1736,15 +1815,15 @@ export default function LandingPage() {
 }
 
 // ─── FAQ accordion (client would need 'use client' — using details/summary for zero-JS) ──
-function FaqItem({ q, a, isLight }: { q: string; a: string; isLight: boolean }) {
+function FaqItem({ q, a }: { q: string; a: string }) {
   return (
     <details
       style={{
-        border: isLight ? '1px solid #e2e8f0' : '1px solid #1e293b',
+        border: '1px solid #1e293b',
         borderRadius: 14,
-        background: isLight ? '#ffffff' : '#0b1220',
+        background: '#0b1220',
         overflow: 'hidden',
-        boxShadow: isLight ? '0 4px 6px -1px rgba(0,0,0,0.01), 0 2px 4px -1px rgba(0,0,0,0.01)' : 'none',
+        boxShadow: 'none',
       }}
       className="group"
     >
@@ -1761,15 +1840,15 @@ function FaqItem({ q, a, isLight }: { q: string; a: string; isLight: boolean }) 
           fontFamily: 'inherit',
         }}
       >
-        <span style={{ fontSize: 15.5, fontWeight: 600, color: isLight ? '#0f172a' : '#f1f5f9' }}>{q}</span>
+        <span style={{ fontSize: 15.5, fontWeight: 600, color: '#f1f5f9' }}>{q}</span>
         <span
           style={{
             flexShrink: 0,
             width: 24,
             height: 24,
             borderRadius: 7,
-            background: isLight ? 'rgba(0,0,0,.03)' : 'rgba(255,255,255,.05)',
-            border: isLight ? '1px solid #e2e8f0' : '1px solid #1e293b',
+            background: 'rgba(255,255,255,.05)',
+            border: '1px solid #1e293b',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -1781,7 +1860,7 @@ function FaqItem({ q, a, isLight }: { q: string; a: string; isLight: boolean }) 
           +
         </span>
       </summary>
-      <div style={{ padding: '0 20px 20px', fontSize: 14.5, lineHeight: 1.65, color: isLight ? '#475569' : '#94a3b8' }}>
+      <div style={{ padding: '0 20px 20px', fontSize: 14.5, lineHeight: 1.65, color: '#94a3b8' }}>
         {a}
       </div>
     </details>

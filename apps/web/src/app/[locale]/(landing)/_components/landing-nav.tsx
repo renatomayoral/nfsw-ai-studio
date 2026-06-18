@@ -1,27 +1,17 @@
-'use client'
-
 import Link from 'next/link'
-import { useTheme } from 'next-themes'
-import { useEffect, useState } from 'react'
-import { ThemeToggle } from '@/components/theme-toggle'
 import { LocaleSwitcher } from '@/components/locale-switcher'
-import { useTranslations } from 'next-intl'
+import { getTranslations } from 'next-intl/server'
 
 const ACCENT = '#7C3AED'
 
-export function LandingNav() {
-  const t = useTranslations()
-  const { theme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+export async function LandingNav() {
+  const t = await getTranslations()
 
-  const isLight = mounted && theme === 'light'
-
-  const navBg = isLight ? 'rgba(255,255,255,.88)' : 'rgba(2,8,23,.72)'
-  const navBorder = isLight ? '#e2e8f0' : '#11203a'
-  const linkColor = isLight ? '#475569' : '#94a3b8'
-  const signInColor = isLight ? '#334155' : '#cbd5e1'
-  const logoSrc = isLight ? '/logo-wordmark-light.svg' : '/logo-wordmark-dark.svg'
+  const navBg = 'rgba(2,8,23,.72)'
+  const navBorder = '#11203a'
+  const linkColor = '#94a3b8'
+  const signInColor = '#cbd5e1'
+  const logoSrc = '/logo-wordmark-dark.svg'
 
   const navLinks = [
     ['#recursos', t('nav.features')],
@@ -81,7 +71,6 @@ export function LandingNav() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <LocaleSwitcher />
-          <ThemeToggle />
           <Link
             href="/login"
             style={{

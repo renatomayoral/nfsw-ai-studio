@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@repo/auth'
 import createMiddleware from 'next-intl/middleware'
 import { routing } from './src/i18n/routing'
 
@@ -41,20 +40,27 @@ export async function proxy(req: NextRequest) {
     return intlMiddleware(req)
   }
 
+  // ── Public creator pages — skip intl prefix ──────────────────────────────
+  if (pathname.startsWith('/p/')) {
+    return NextResponse.next()
+  }
+
   // ── Auth guard for protected app routes ──────────────────────────────────
   const isProtectedRoute =
     pathname.startsWith('/admin') ||
     pathname.startsWith('/creators') ||
     pathname.startsWith('/settings') ||
-    /^\/(pt-BR|en|es)\/(admin|creators|settings)(\/|$)/.test(pathname)
+    /^\/(br|en|es)\/(admin|creators|settings)(\/|$)/.test(pathname)
 
   if (isProtectedRoute) {
-    const session = await auth.api.getSession({
+    const sessionRes = await fetch(new URL('/api/auth/get-session', req.url), {
       headers: req.headers,
     })
+    const session = sessionRes.ok ? await sessionRes.json() : null
 
-    if (!session) {
-      const loginUrl = new URL('/login', req.url)
+    if (!session?.user) {
+      const locale = pathname.match(/^\/(br|en|es)(\/|$)/)?.[1] ?? 'br'
+      const loginUrl = new URL(`/${locale}/login`, req.url)
       loginUrl.searchParams.set('from', pathname)
       return NextResponse.redirect(loginUrl)
     }

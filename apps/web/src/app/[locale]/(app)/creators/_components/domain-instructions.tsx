@@ -117,19 +117,14 @@ export function DomainInstructions({ domain }: Props) {
       </div>
       <ol className="mt-2.5 list-decimal space-y-1 pl-4">
         <li>
-          {detected ? (
-            <span
-              dangerouslySetInnerHTML={{
-                __html: t('creators.instruction1Detected', { detected }),
-              }}
-            />
-          ) : (
-            <span
-              dangerouslySetInnerHTML={{
-                __html: t('creators.instruction1'),
-              }}
-            />
-          )}
+          {detected
+            ? t.rich('creators.instruction1Detected', {
+                detected,
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })
+            : t.rich('creators.instruction1', {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
         </li>
       </ol>
       <pre className="bg-background mt-2 overflow-x-auto rounded px-3 py-2 font-mono text-[11px]">
