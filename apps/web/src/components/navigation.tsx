@@ -31,7 +31,7 @@ export function Navigation() {
   const navItems = [
     { href: `/${locale}/admin`, label: t('navigation.dashboard'), icon: LayoutDashboard },
     { href: `/${locale}/creators`, label: t('navigation.creators'), icon: Users },
-    { href: `/${locale}/settings`, label: t('navigation.settings'), icon: Settings },
+{ href: `/${locale}/settings`, label: t('navigation.settings'), icon: Settings },
   ]
 
   const logoSrc =
