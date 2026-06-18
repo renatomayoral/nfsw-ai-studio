@@ -71,7 +71,8 @@ jobs:
             --set-secrets "STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET:latest" \
             --set-secrets "STRIPE_PRICE_SPARK=STRIPE_PRICE_SPARK:latest" \
             --set-secrets "STRIPE_PRICE_CREATOR=STRIPE_PRICE_CREATOR:latest" \
-            --set-secrets "STRIPE_PRICE_PRO=STRIPE_PRICE_PRO:latest"
+            --set-secrets "STRIPE_PRICE_PRO=STRIPE_PRICE_PRO:latest" \
+            --set-secrets "CRON_SECRET=CRON_SECRET:latest"
             # NOWPayments (crypto rail) — add when enabling the second rail:
             # --set-secrets "NOWPAYMENTS_API_KEY=NOWPAYMENTS_API_KEY:latest"
             # --set-secrets "NOWPAYMENTS_IPN_SECRET=NOWPAYMENTS_IPN_SECRET:latest"
