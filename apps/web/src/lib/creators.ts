@@ -58,6 +58,13 @@ export type CreatorLinkStat = {
   barPct: number
 }
 
+export type ConnectedPlatform = {
+  platform: string
+  handle: string | null
+  platformUserId: string | null
+  expired: boolean
+}
+
 export type CreatorDetail = {
   id: string
   name: string
@@ -73,4 +80,6 @@ export type CreatorDetail = {
   /** 14 daily click counts (oldest → today) */
   daily: number[]
   links: CreatorLinkStat[]
+  /** platform connection status — avoids N separate fetches on mount */
+  platformConnections: ConnectedPlatform[]
 }

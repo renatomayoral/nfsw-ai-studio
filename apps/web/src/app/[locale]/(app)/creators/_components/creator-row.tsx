@@ -1,39 +1,37 @@
 'use client'
 
-import { ChevronRight, Copy } from 'lucide-react'
+import Link from 'next/link'
+import { Copy } from 'lucide-react'
 import { useToast } from '@repo/ui/hooks/use-toast'
 import { useLocale, useTranslations } from 'next-intl'
 import { type CreatorListRow } from '@/lib/creators'
 import { Avatar } from './avatar'
 
-type Props = {
-  c: CreatorListRow
-  selected: boolean
-  onSelect: () => void
-}
+type Props = { c: CreatorListRow }
 
-export function CreatorRow({ c, selected, onSelect }: Props) {
+export function CreatorRow({ c }: Props) {
   const t = useTranslations()
   const locale = useLocale()
   const { toast } = useToast()
 
   const nf = (n: number) => n.toLocaleString(locale)
 
+  const formattedChange =
+    locale === 'br' || locale === 'es'
+      ? String(c.change).replace('.', ',')
+      : String(c.change)
+
   function copy(e: React.MouseEvent) {
+    e.preventDefault()
     e.stopPropagation()
     navigator.clipboard.writeText(`${location.origin}/p/${c.slug}`)
     toast({ title: t('creators.linkCopied') })
   }
 
-  // Format decimal separator based on locale
-  const formattedChange = locale === 'br' || locale === 'es'
-    ? String(c.change).replace('.', ',')
-    : String(c.change)
-
   return (
-    <button
-      onClick={onSelect}
-      className={`hover:bg-primary/5 grid w-full grid-cols-[2.2fr_1.6fr_1fr_1.1fr_1.2fr_0.9fr_36px] items-center gap-3.5 border-b px-5 py-3.5 text-left transition-colors ${selected ? 'bg-primary/8' : ''}`}
+    <Link
+      href={`/${locale}/creators/${c.id}`}
+      className="hover:bg-primary/5 grid w-full grid-cols-[2.2fr_1.6fr_1fr_1.1fr_1.2fr_0.9fr] items-center gap-3.5 border-b px-5 py-3.5 transition-colors"
     >
       <div className="flex min-w-0 items-center gap-3">
         <Avatar name={c.name} url={c.avatarUrl} size={40} />
@@ -98,10 +96,6 @@ export function CreatorRow({ c, selected, onSelect }: Props) {
           </span>
         )}
       </div>
-
-      <div className="text-muted-foreground/50 flex justify-end">
-        <ChevronRight className="h-4.5 w-4.5" />
-      </div>
-    </button>
+    </Link>
   )
 }

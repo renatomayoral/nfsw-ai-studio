@@ -9,6 +9,7 @@ import { Input } from '@repo/ui/components/input'
 import { useToast } from '@repo/ui/hooks/use-toast'
 import { type CreatorDetail } from '@/lib/creators'
 import { Avatar } from './avatar'
+import { CreatorLinks } from './creator-links'
 import { DomainInstructions } from './domain-instructions'
 import { Monetization } from './monetization'
 import { FanvueConnect } from './fanvue-connect'
@@ -136,6 +137,9 @@ export function Tracking({ detail }: Props) {
         </div>
       </div>
 
+      {/* Platform links */}
+      <CreatorLinks creatorId={detail.id} links={detail.links} />
+
       {/* Custom domain */}
       <div className="border-t px-5 py-4">
         <div className="mb-3 flex items-center gap-2">
@@ -172,10 +176,10 @@ export function Tracking({ detail }: Props) {
         <div className="text-[11.5px] font-bold tracking-widest text-muted-foreground uppercase">
           Plataformas conectadas
         </div>
-        <OnlyFansConnect creatorId={detail.id} />
-        <FanslyConnect creatorId={detail.id} />
-        <FanvueConnect creatorId={detail.id} />
-        <PatreonConnect creatorId={detail.id} />
+        <OnlyFansConnect creatorId={detail.id} initialConnection={detail.platformConnections.find(p => p.platform === 'onlyfans')} />
+        <FanslyConnect creatorId={detail.id} initialConnection={detail.platformConnections.find(p => p.platform === 'fansly')} />
+        <FanvueConnect creatorId={detail.id} initialConnection={detail.platformConnections.find(p => p.platform === 'fanvue')} />
+        <PatreonConnect creatorId={detail.id} initialConnection={detail.platformConnections.find(p => p.platform === 'patreon')} />
       </div>
 
       {/* Monetization */}

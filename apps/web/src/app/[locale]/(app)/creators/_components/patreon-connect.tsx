@@ -1,6 +1,7 @@
 'use client'
 
 import { PlatformConnectCard, type PlatformConnectConfig } from './platform-connect-card'
+import type { ConnectedPlatform } from '@/lib/creators'
 
 function PatreonLogo({ size = 18 }: { size?: number }) {
   return (
@@ -24,6 +25,6 @@ const PATREON_CONFIG: PlatformConnectConfig = {
   docsLabel: 'Registrar app no Patreon',
 }
 
-export function PatreonConnect({ creatorId }: { creatorId: string }) {
-  return <PlatformConnectCard creatorId={creatorId} config={PATREON_CONFIG} />
+export function PatreonConnect({ creatorId, initialConnection }: { creatorId: string; initialConnection?: ConnectedPlatform }) {
+  return <PlatformConnectCard creatorId={creatorId} config={PATREON_CONFIG} initialConnection={initialConnection} />
 }

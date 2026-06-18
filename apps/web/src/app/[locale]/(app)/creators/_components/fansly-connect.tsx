@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { RefreshCw, Unlink, ExternalLink, AlertTriangle } from 'lucide-react'
+import type { ConnectedPlatform } from '@/lib/creators'
 
-type Props = { creatorId: string }
+type Props = { creatorId: string; initialConnection?: ConnectedPlatform }
 
 type FanslyStatus = {
   connected: boolean
@@ -23,11 +24,15 @@ type FanslyStats = {
 
 type BookmarkletData = { bookmarkletHref: string }
 
-export function FanslyConnect({ creatorId }: Props) {
+export function FanslyConnect({ creatorId, initialConnection }: Props) {
   const qc = useQueryClient()
   const [dragged, setDragged] = useState(false)
   const [reconnect, setReconnect] = useState(false)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const initialStatus: FanslyStatus | undefined = initialConnection
+    ? { connected: true, expired: initialConnection.expired, handle: initialConnection.handle ?? undefined, platformUserId: initialConnection.platformUserId ?? undefined }
+    : { connected: false }
 
   const { data: status, isLoading: statusLoading } = useQuery<FanslyStatus>({
     queryKey: ['fansly-status', creatorId],
@@ -36,6 +41,7 @@ export function FanslyConnect({ creatorId }: Props) {
       if (res.status === 404) return { connected: false }
       return res.json()
     },
+    initialData: initialStatus,
   })
 
   const { data: stats, isFetching: statsFetching, refetch: refetchStats } = useQuery<FanslyStats>({

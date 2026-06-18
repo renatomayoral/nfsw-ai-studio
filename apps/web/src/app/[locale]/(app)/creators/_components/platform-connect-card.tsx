@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { RefreshCw, Unlink, ExternalLink } from 'lucide-react'
+import type { ConnectedPlatform } from '@/lib/creators'
 
 export type PlatformConnectConfig = {
   platform: string
@@ -29,11 +30,16 @@ type Status = {
 type Props = {
   creatorId: string
   config: PlatformConnectConfig
+  initialConnection?: ConnectedPlatform
 }
 
-export function PlatformConnectCard({ creatorId, config }: Props) {
+export function PlatformConnectCard({ creatorId, config, initialConnection }: Props) {
   const qc = useQueryClient()
   const key = [config.platform, 'status', creatorId]
+
+  const initialStatus: Status | undefined = initialConnection
+    ? { connected: true, needsReauth: initialConnection.expired, handle: initialConnection.handle ?? undefined, platformUserId: initialConnection.platformUserId ?? undefined }
+    : { connected: false }
 
   const { data: status, isLoading } = useQuery<Status>({
     queryKey: key,
@@ -42,6 +48,7 @@ export function PlatformConnectCard({ creatorId, config }: Props) {
       if (res.status === 404) return { connected: false }
       return res.json()
     },
+    initialData: initialStatus,
   })
 
   const disconnect = useMutation({

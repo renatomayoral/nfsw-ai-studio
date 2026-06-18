@@ -3,9 +3,9 @@ import { and, eq, gte, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, schema } from '@repo/db'
 import { auth } from '@repo/auth'
-import { platformMeta, type CreatorDetail } from '@/lib/creators'
+import { platformMeta, type ConnectedPlatform, type CreatorDetail } from '@/lib/creators'
 
-const { creator, creatorLink, linkClick } = schema
+const { creator, creatorLink, linkClick, platformToken } = schema
 
 async function ownedCreator(id: string, userId: string) {
   const c = await db.query.creator.findFirst({ where: eq(creator.id, id) })
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     orderBy: (l, { asc }) => [asc(l.sortOrder)],
   })
 
-  const [perLink, dailyRows] = await Promise.all([
+  const [perLink, dailyRows, platformTokens] = await Promise.all([
     db
       .select({ linkId: linkClick.linkId, n: sql<number>`count(*)::int` })
       .from(linkClick)
@@ -46,6 +46,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         and(eq(linkClick.creatorId, id), gte(linkClick.createdAt, sql`now() - interval '14 days'`)),
       )
       .groupBy(sql`1`),
+    db.query.platformToken.findMany({ where: eq(platformToken.creatorId, id) }),
   ])
 
   const clicksByLink = new Map(perLink.map((r) => [r.linkId, r.n]))
@@ -80,6 +81,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return byDay.get(key) ?? 0
   })
 
+  const platformConnections: ConnectedPlatform[] = platformTokens.map((t) => ({
+    platform: t.platform,
+    handle: t.platformHandle,
+    platformUserId: t.platformUserId,
+    expired: t.expiresAt?.getTime() === 0,
+  }))
+
   const detail: CreatorDetail = {
     id: c.id,
     name: c.name,
@@ -94,6 +102,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     totalClicks30d: total,
     daily,
     links: linksWithPct,
+    platformConnections,
   }
 
   return NextResponse.json(detail)

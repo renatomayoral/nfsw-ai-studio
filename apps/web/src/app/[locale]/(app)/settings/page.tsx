@@ -1,15 +1,37 @@
 'use client'
 
+import Link from 'next/link'
+import { useLocale } from 'next-intl'
+import { Settings2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/components/card'
 import { authClient } from '@repo/auth/client'
 
 export default function SettingsPage() {
   const { data: session } = authClient.useSession()
   const user = session?.user
+  const locale = useLocale()
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <h1 className="text-2xl font-extrabold tracking-tight">Configurações</h1>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Plataformas disponíveis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground mb-3 text-sm">
+            Gerencie as plataformas disponíveis para todas as criadoras (OnlyFans, Fansly, Instagram, etc.).
+          </p>
+          <Link
+            href={`/${locale}/creators/platforms`}
+            className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-accent"
+          >
+            <Settings2 className="h-4 w-4" />
+            Gerenciar plataformas
+          </Link>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

@@ -137,11 +137,11 @@ export default function PlatformsPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <Link
-            href={`/${locale}/creators`}
+            href={`/${locale}/settings`}
             className="text-muted-foreground hover:text-foreground mb-2 inline-flex items-center gap-1.5 text-sm"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            {t('platforms.backToCreators')}
+            Configurações
           </Link>
           <h1 className="text-2xl font-extrabold tracking-tight">{t('platforms.title')}</h1>
           <p className="text-muted-foreground mt-1.5 text-sm">

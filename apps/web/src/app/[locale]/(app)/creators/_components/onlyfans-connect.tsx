@@ -4,7 +4,9 @@ import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { RefreshCw, Unlink, ExternalLink, AlertTriangle } from 'lucide-react'
 
-type Props = { creatorId: string }
+import type { ConnectedPlatform } from '@/lib/creators'
+
+type Props = { creatorId: string; initialConnection?: ConnectedPlatform }
 
 type OfStatus = {
   connected: boolean
@@ -29,13 +31,17 @@ type BookmarkletData = { bookmarkletHref: string }
 
 const money = (cents: number) => `$${(cents / 100).toFixed(2)}`
 
-export function OnlyFansConnect({ creatorId }: Props) {
+export function OnlyFansConnect({ creatorId, initialConnection }: Props) {
   const qc = useQueryClient()
   const [dragged, setDragged] = useState(false)
   const [reconnect, setReconnect] = useState(false)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Connection status
+  const initialStatus: OfStatus | undefined = initialConnection
+    ? { connected: true, expired: initialConnection.expired, handle: initialConnection.handle ?? undefined, platformUserId: initialConnection.platformUserId ?? undefined }
+    : { connected: false }
+
   const { data: status, isLoading: statusLoading } = useQuery<OfStatus>({
     queryKey: ['of-status', creatorId],
     queryFn: async () => {
@@ -43,6 +49,7 @@ export function OnlyFansConnect({ creatorId }: Props) {
       if (res.status === 404) return { connected: false }
       return res.json()
     },
+    initialData: initialStatus,
   })
 
   // Stats (only when connected)

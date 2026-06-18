@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
+import type { ConnectedPlatform } from '@/lib/creators'
 
-type Props = { creatorId: string }
+type Props = { creatorId: string; initialConnection?: ConnectedPlatform }
 
 type FanvueStatus = {
   connected: boolean
@@ -24,16 +25,21 @@ function FanvueLogo({ size = 18 }: { size?: number }) {
   )
 }
 
-export function FanvueConnect({ creatorId }: Props) {
+export function FanvueConnect({ creatorId, initialConnection }: Props) {
   const searchParams = useSearchParams()
   const queryClient = useQueryClient()
   const [apiToken, setApiToken] = useState('')
   const [showTokenInput, setShowTokenInput] = useState(false)
   const [savingToken, setSavingToken] = useState(false)
 
+  const initialStatus: FanvueStatus | undefined = initialConnection
+    ? { connected: true, needsReauth: initialConnection.expired, handle: initialConnection.handle ?? undefined, platformUserId: initialConnection.platformUserId ?? undefined }
+    : { connected: false }
+
   const { data: status, isLoading } = useQuery<FanvueStatus>({
     queryKey: ['fanvue-status', creatorId],
     queryFn: () => fetch(`/api/fanvue/status?creatorId=${creatorId}`).then(r => r.json()),
+    initialData: initialStatus,
   })
 
   const disconnect = useMutation({
