@@ -1,5 +1,8 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
+
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/components/card'
 import { authClient } from '@repo/auth/client'
 

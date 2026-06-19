@@ -1,14 +1,22 @@
 import { Toaster } from '@repo/ui/components/toaster'
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@repo/ui/components/sidebar'
+import { Separator } from '@repo/ui/components/separator'
 import { Providers } from '@/app/providers'
-import { Navigation } from '@/components/navigation'
+import { AppSidebar } from '@/components/app-sidebar'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <Providers>
-      <div className="flex min-h-screen flex-col">
-        <Navigation />
-        <main className="container mx-auto max-w-7xl flex-1 px-4 py-6">{children}</main>
-      </div>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+          </header>
+          <main className="flex-1 p-6">{children}</main>
+        </SidebarInset>
+      </SidebarProvider>
       <Toaster />
     </Providers>
   )

@@ -3,15 +3,14 @@
 import Link from 'next/link'
 import { Copy } from 'lucide-react'
 import { useToast } from '@repo/ui/hooks/use-toast'
-import { useLocale, useTranslations } from 'next-intl'
+import { useTranslations } from 'next-intl'
 import { type CreatorListRow } from '@/lib/creators'
 import { Avatar } from './avatar'
 
-type Props = { c: CreatorListRow }
+type Props = { c: CreatorListRow; locale: string }
 
-export function CreatorRow({ c }: Props) {
+export function CreatorRow({ c, locale }: Props) {
   const t = useTranslations()
-  const locale = useLocale()
   const { toast } = useToast()
 
   const nf = (n: number) => n.toLocaleString(locale)

@@ -1,101 +1,127 @@
-'use client'
-
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useLocale, useTranslations } from 'next-intl'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@repo/ui/components/dialog'
-import { Button } from '@repo/ui/components/button'
-import { Input } from '@repo/ui/components/input'
-import { useToast } from '@repo/ui/hooks/use-toast'
-import { Camera, Plus, Users, X } from 'lucide-react'
-import { slugify, type CreatorListRow } from '@/lib/creators'
+import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { and, asc, eq, gte, inArray, sql } from 'drizzle-orm'
+import { getTranslations, getLocale } from 'next-intl/server'
+import { Users } from 'lucide-react'
+import { auth } from '@repo/auth'
+import { db, schema } from '@repo/db'
+import { platformMeta, type CreatorListRow } from '@/lib/creators'
 import { CreatorsStats } from './_components/creators-stats'
 import { CreatorRow } from './_components/creator-row'
+import { CreateCreatorDialog } from './_components/create-creator-dialog'
 
-type Platform = { id: string; key: string; label: string; color: string; active: boolean }
+const { creator, creatorLink, linkClick } = schema
 
-export default function CreatorsPage() {
-  const t = useTranslations()
-  const locale = useLocale()
-  const router = useRouter()
-  const qc = useQueryClient()
-  const { toast } = useToast()
-  const [createOpen, setCreateOpen] = useState(false)
-  const [newName, setNewName] = useState('')
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
-  const [uploadingAvatar, setUploadingAvatar] = useState(false)
-
-  const { data: platforms = [] } = useQuery<Platform[]>({
-    queryKey: ['platforms'],
-    queryFn: () => fetch('/api/platforms').then((r) => r.json()),
+async function getCreators(userId: string): Promise<CreatorListRow[]> {
+  const creators = await db.query.creator.findMany({
+    where: eq(creator.userId, userId),
+    orderBy: (c, { desc }) => [desc(c.createdAt)],
   })
+  if (!creators.length) return []
 
-  const { data: creators, isLoading } = useQuery<CreatorListRow[]>({
-    queryKey: ['creators'],
-    queryFn: () => fetch('/api/creators').then((r) => r.json()),
-  })
+  const creatorIds = creators.map((c) => c.id)
 
-  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setAvatarPreview(URL.createObjectURL(file))
-    setUploadingAvatar(true)
-    try {
-      const fd = new FormData()
-      fd.append('file', file)
-      const res = await fetch('/api/upload/avatar', { method: 'POST', body: fd })
-      if (!res.ok) throw new Error(t('creators.toastUploadError'))
-      const { url } = (await res.json()) as { url: string }
-      setAvatarUrl(url)
-    } catch (err) {
-      toast({
-        title: t('creators.toastUploadError'),
-        description: (err as Error).message,
-        variant: 'destructive',
+  const [curr30, prev30, byPlatform, trendRows] = await Promise.all([
+    db
+      .select({ creatorId: linkClick.creatorId, n: sql<number>`count(*)::int` })
+      .from(linkClick)
+      .where(and(inArray(linkClick.creatorId, creatorIds), gte(linkClick.createdAt, sql`now() - interval '30 days'`)))
+      .groupBy(linkClick.creatorId),
+    db
+      .select({ creatorId: linkClick.creatorId, n: sql<number>`count(*)::int` })
+      .from(linkClick)
+      .where(and(
+        inArray(linkClick.creatorId, creatorIds),
+        gte(linkClick.createdAt, sql`now() - interval '60 days'`),
+        sql`${linkClick.createdAt} < now() - interval '30 days'`,
+      ))
+      .groupBy(linkClick.creatorId),
+    db
+      .select({
+        creatorId: creatorLink.creatorId,
+        platform: creatorLink.platform,
+        n: sql<number>`count(${linkClick.id})::int`,
       })
-      setAvatarPreview(null)
-    } finally {
-      setUploadingAvatar(false)
+      .from(creatorLink)
+      .leftJoin(linkClick, and(
+        eq(linkClick.linkId, creatorLink.id),
+        gte(linkClick.createdAt, sql`now() - interval '30 days'`),
+      ))
+      .where(inArray(creatorLink.creatorId, creatorIds))
+      .groupBy(creatorLink.creatorId, creatorLink.platform),
+    db
+      .select({
+        creatorId: linkClick.creatorId,
+        day: sql<string>`date_trunc('day', ${linkClick.createdAt})`,
+        n: sql<number>`count(*)::int`,
+      })
+      .from(linkClick)
+      .where(and(inArray(linkClick.creatorId, creatorIds), gte(linkClick.createdAt, sql`now() - interval '12 days'`)))
+      .groupBy(linkClick.creatorId, sql`2`)
+      .orderBy(linkClick.creatorId, sql`2`),
+  ])
+
+  const curr30Map = new Map(curr30.map((r) => [r.creatorId, r.n]))
+  const prev30Map = new Map(prev30.map((r) => [r.creatorId, r.n]))
+  const byPlatformMap = new Map<string, typeof byPlatform>()
+  for (const r of byPlatform) {
+    const arr = byPlatformMap.get(r.creatorId) ?? []
+    arr.push(r)
+    byPlatformMap.set(r.creatorId, arr)
+  }
+  const trendMap = new Map<string, typeof trendRows>()
+  for (const r of trendRows) {
+    const arr = trendMap.get(r.creatorId) ?? []
+    arr.push(r)
+    trendMap.set(r.creatorId, arr)
+  }
+
+  return creators.map((c) => {
+    const clicks30d = curr30Map.get(c.id) ?? 0
+    const prev30d = prev30Map.get(c.id) ?? 0
+    const change =
+      prev30d === 0
+        ? clicks30d > 0 ? 100 : 0
+        : Math.round(((clicks30d - prev30d) / prev30d) * 1000) / 10
+
+    const platforms = byPlatformMap.get(c.id) ?? []
+    const top = [...platforms].sort((a, b) => (b.n ?? 0) - (a.n ?? 0))[0]
+    const topLink =
+      top && (top.n ?? 0) > 0 ? { platform: top.platform, ...platformMeta(top.platform) } : null
+
+    const dayRows = trendMap.get(c.id) ?? []
+    const counts = dayRows.map((r) => r.n)
+    const maxCount = Math.max(1, ...counts)
+    const trend = Array.from({ length: 12 }, (_, i) =>
+      Math.round(((counts[i] ?? 0) / maxCount) * 100),
+    )
+
+    return {
+      id: c.id,
+      name: c.name,
+      handle: c.handle,
+      slug: c.slug,
+      avatarUrl: c.avatarUrl,
+      customDomain: c.customDomain ?? null,
+      status: c.status as 'live' | 'draft',
+      clicks30d,
+      change,
+      topLink: topLink ? { platform: topLink.platform, label: topLink.label, color: topLink.color } : null,
+      trend,
     }
-  }
-
-  function resetDialog() {
-    setNewName('')
-    setAvatarUrl(null)
-    setAvatarPreview(null)
-    setUploadingAvatar(false)
-  }
-
-  const { mutate: createCreator, isPending } = useMutation({
-    mutationFn: async () => {
-      const res = await fetch('/api/creators', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name: newName, avatarUrl: avatarUrl ?? undefined }),
-      })
-      if (!res.ok) throw new Error(t('creators.toastCreateError'))
-      return res.json() as Promise<{ id: string; slug: string }>
-    },
-    onSuccess: ({ id }) => {
-      setCreateOpen(false)
-      resetDialog()
-      void qc.invalidateQueries({ queryKey: ['creators'] })
-      toast({ title: t('creators.toastCreateSuccess') })
-      router.push(`/${locale}/creators/${id}`)
-    },
-    onError: (e) =>
-      toast({ title: t('creators.toastCreateError'), description: (e as Error).message, variant: 'destructive' }),
   })
+}
+
+export default async function CreatorsPage() {
+  const h = await headers()
+  const session = await auth.api.getSession({ headers: h })
+  if (!session) redirect('/br/login')
+
+  const [t, locale, creators] = await Promise.all([
+    getTranslations(),
+    getLocale(),
+    getCreators(session.user.id),
+  ])
 
   return (
     <div className="space-y-6">
@@ -103,27 +129,18 @@ export default function CreatorsPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight">{t('creators.title')}</h1>
-          <p className="text-muted-foreground mt-1.5 text-sm">
-            {t('creators.description')}
-          </p>
+          <p className="text-muted-foreground mt-1.5 text-sm">{t('creators.description')}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            {t('creators.newCreatorButton')}
-          </Button>
-        </div>
+        <CreateCreatorDialog />
       </div>
 
-      <CreatorsStats creators={creators ?? []} />
+      <CreatorsStats creators={creators} />
 
       {/* Creators table */}
       <div className="bg-card rounded-2xl border">
         <div className="flex items-center justify-between border-b px-5 py-4">
           <span className="text-[15px] font-bold">{t('creators.tableHeaderTitle')}</span>
-          <span className="text-muted-foreground text-xs">
-            {t('creators.tableHeaderSub')}
-          </span>
+          <span className="text-muted-foreground text-xs">{t('creators.tableHeaderSub')}</span>
         </div>
 
         <div className="text-muted-foreground grid grid-cols-[2.2fr_1.6fr_1fr_1.1fr_1.2fr_0.9fr] gap-3.5 border-b px-5 py-2.5 text-[11px] font-semibold tracking-wider uppercase">
@@ -135,133 +152,15 @@ export default function CreatorsPage() {
           <div>{t('creators.colStatus')}</div>
         </div>
 
-        {isLoading ? (
-          <div className="space-y-px">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-muted/40 h-17.5 animate-pulse" />
-            ))}
-          </div>
-        ) : !creators?.length ? (
+        {!creators.length ? (
           <div className="text-muted-foreground flex flex-col items-center justify-center gap-3 py-16">
             <Users className="h-10 w-10 opacity-30" />
             <p className="text-sm">{t('creators.noCreators')}</p>
           </div>
         ) : (
-          creators.map((c) => (
-            <CreatorRow key={c.id} c={c} />
-          ))
+          creators.map((c) => <CreatorRow key={c.id} c={c} locale={locale} />)
         )}
       </div>
-
-      {/* Create dialog */}
-      <Dialog
-        open={createOpen}
-        onOpenChange={(o) => {
-          setCreateOpen(o)
-          if (!o) resetDialog()
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('creators.dialogNewTitle')}</DialogTitle>
-            <DialogDescription>
-              {t('creators.dialogNewDesc')}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="flex flex-col items-center gap-3">
-              <label className="group relative cursor-pointer">
-                <div className="border-border bg-secondary group-hover:border-primary h-20 w-20 overflow-hidden rounded-full border-2 border-dashed transition-colors">
-                  {avatarPreview ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={avatarPreview} alt="preview" className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="text-muted-foreground flex h-full w-full flex-col items-center justify-center gap-1">
-                      <Camera className="h-6 w-6" />
-                      <span className="text-[10px] font-medium">{t('creators.dialogAvatar')}</span>
-                    </div>
-                  )}
-                  {uploadingAvatar && (
-                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    </div>
-                  )}
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={handleAvatarChange}
-                />
-              </label>
-              {avatarPreview && (
-                <button
-                  onClick={() => {
-                    setAvatarPreview(null)
-                    setAvatarUrl(null)
-                  }}
-                  className="text-muted-foreground hover:text-destructive flex items-center gap-1 text-xs"
-                >
-                  <X className="h-3 w-3" />
-                  {t('creators.dialogRemoveAvatar')}
-                </button>
-              )}
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">{t('creators.dialogNameLabel')}</label>
-              <Input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder={t('creators.dialogNamePlaceholder')}
-                className="mt-2"
-              />
-            </div>
-            <div className="bg-background text-muted-foreground rounded-lg border px-3 py-2.5 text-sm">
-              {t('creators.dialogUrlLabel')}{' '}
-              <span className="text-primary font-mono">
-                /p/{newName ? slugify(newName) : t('creators.dialogUrlPlaceholder')}
-              </span>
-            </div>
-
-            {platforms.filter((p) => p.active).length > 0 && (
-              <div>
-                <p className="text-sm font-medium">{t('creators.dialogPlatformsLabel')}</p>
-                <div className="mt-2.5 flex flex-wrap gap-2">
-                  {platforms
-                    .filter((p) => p.active)
-                    .map((p) => (
-                      <span
-                        key={p.id}
-                        className="bg-secondary inline-flex items-center gap-2 rounded-full border px-2.5 py-1.5 text-xs font-semibold"
-                      >
-                        <span className="h-2 w-2 rounded-full" style={{ background: p.color }} />
-                        {p.label}
-                      </span>
-                    ))}
-                </div>
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setCreateOpen(false)
-                resetDialog()
-              }}
-            >
-              {t('creators.dialogCancel')}
-            </Button>
-            <Button
-              onClick={() => createCreator()}
-              disabled={isPending || uploadingAvatar || newName.trim().length < 2}
-            >
-              {isPending ? t('creators.dialogCreating') : t('creators.dialogCreate')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
