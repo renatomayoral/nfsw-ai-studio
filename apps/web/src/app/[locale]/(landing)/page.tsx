@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { LandingNav } from './_components/landing-nav'
+import { LocaleSwitcher } from '@/components/locale-switcher'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 const ACCENT = '#ec4899'
@@ -1784,11 +1785,12 @@ export default async function LandingPage({ params }: Props) {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 9,
+              gap: 12,
               fontSize: 12,
               color: '#52525b',
             }}
           >
+            <LocaleSwitcher />
             <span
               style={{
                 border: '1px solid #3f3f46',

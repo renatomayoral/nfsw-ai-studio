@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { LocaleSwitcher } from '@/components/locale-switcher'
 import { getTranslations } from 'next-intl/server'
 
 const ACCENT = '#7C3AED'
@@ -70,7 +69,6 @@ export async function LandingNav() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <LocaleSwitcher />
           <Link
             href="/login"
             style={{
