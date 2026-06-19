@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { LayoutDashboard, Users, Settings, LogOut, ChevronsUpDown } from 'lucide-react'
+import { LayoutDashboard, Users, Settings, LogOut } from 'lucide-react'
 import { authClient } from '@repo/auth/client'
 import {
   Sidebar,
@@ -18,9 +18,30 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@repo/ui/components/sidebar'
 import { ThemeToggle } from './theme-toggle'
 import { LocaleSwitcher } from './locale-switcher'
+
+function SidebarLogo() {
+  const { state } = useSidebar()
+  const { theme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
+  const collapsed = state === 'collapsed'
+  const wordmarkSrc = mounted && theme === 'light' ? '/logo-wordmark-light.svg' : '/logo-wordmark-dark.svg'
+
+  if (collapsed) {
+    return (
+      <Image src="/logo-icon.svg" alt="Creators Link" width={24} height={24} priority />
+    )
+  }
+
+  return (
+    <Image src={wordmarkSrc} alt="Creators Link" width={120} height={22} priority />
+  )
+}
 
 export function AppSidebar() {
   const t = useTranslations()
@@ -28,10 +49,6 @@ export function AppSidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const { data: session } = authClient.useSession()
-  const { theme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => setMounted(true), [])
 
   async function handleSignOut() {
     await authClient.signOut()
@@ -44,19 +61,16 @@ export function AppSidebar() {
     { href: `/${locale}/settings`, label: t('navigation.settings'), icon: Settings },
   ]
 
-  const logoSrc =
-    mounted && theme === 'light' ? '/logo-wordmark-light.svg' : '/logo-wordmark-dark.svg'
-
   const user = session?.user
 
   return (
-    <Sidebar collapsible="offcanvas" variant="inset">
+    <Sidebar collapsible="icon" variant="inset">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:p-1.5!">
-              <Link href={`/${locale}/dashboard`} className="flex items-center gap-2">
-                <Image src={logoSrc} alt="Creators Link" width={130} height={24} priority />
+              <Link href={`/${locale}/dashboard`}>
+                <SidebarLogo />
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -105,13 +119,13 @@ export function AppSidebar() {
                     {(user?.name ?? user?.email ?? 'U')[0]?.toUpperCase()}
                   </div>
                 )}
-                <div className="grid flex-1 min-w-0 text-left text-sm leading-tight">
+                <div className="grid flex-1 min-w-0 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                   <span className="truncate font-semibold">{user?.name ?? ''}</span>
                   <span className="truncate text-xs text-muted-foreground">{user?.email ?? ''}</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-0.5 shrink-0">
+              <div className="flex items-center gap-0.5 shrink-0 group-data-[collapsible=icon]:hidden">
                 <LocaleSwitcher />
                 <ThemeToggle />
                 <button

@@ -1,8 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { money } from './dashboard'
 import type { LedgerRow } from './dashboard'
+
+const PAGE_SIZE = 8
 
 type Props = { rows: LedgerRow[]; count: number }
 
@@ -19,6 +22,10 @@ function fmtDate(d: string) {
 
 export function TransactionsTable({ rows, count }: Props) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
+  const [page, setPage] = useState(1)
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE))
+  const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   function toggle(id: string) {
     setExpanded(prev => {
@@ -36,9 +43,7 @@ export function TransactionsTable({ rows, count }: Props) {
           <div className="text-[15px] font-bold">Transações</div>
           <div className="mt-0.5 text-[12.5px] text-muted-foreground">{count} {count === 1 ? 'transação' : 'transações'} no período selecionado</div>
         </div>
-        <div className="flex gap-3 text-[11.5px] text-muted-foreground">
-          <span>Clique em uma linha para ver taxas</span>
-        </div>
+        <span className="text-[11.5px] text-muted-foreground">Clique em uma linha para ver taxas</span>
       </div>
 
       {/* Table head */}
@@ -52,7 +57,7 @@ export function TransactionsTable({ rows, count }: Props) {
       {rows.length === 0 ? (
         <div className="py-12 text-center text-sm text-muted-foreground">Nenhuma transação no período selecionado.</div>
       ) : (
-        rows.map(t => {
+        pageRows.map(t => {
           const pf = t.gross * t.pf
           const fx = t.gross * t.fx
           const net = t.gross - pf - fx
@@ -62,12 +67,12 @@ export function TransactionsTable({ rows, count }: Props) {
             <div key={t.id} className="border-b border-border last:border-none">
               <button
                 onClick={() => toggle(t.id)}
-                className="grid w-full grid-cols-[1fr_1.2fr_1fr_0.7fr_0.7fr_0.7fr_0.7fr_32px] cursor-pointer items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-accent/30"
+                className="grid w-full grid-cols-[1fr_1.2fr_1fr_0.7fr_0.7fr_0.7fr_0.7fr_32px] cursor-pointer items-center gap-3 px-5 py-1 text-left transition-colors hover:bg-accent/30"
               >
                 <span className="font-mono text-[12.5px] text-muted-foreground">{t.id}</span>
                 <span className="text-[13px]">{fmtDate(t.date)}</span>
                 <div className="flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-[10px] font-bold uppercase text-foreground">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[9px] font-bold uppercase text-foreground">
                     {t.creator.split(' ').map(w => w[0]).join('').slice(0, 2)}
                   </div>
                   <span className="text-[13px] font-medium">{t.creator}</span>
@@ -106,6 +111,44 @@ export function TransactionsTable({ rows, count }: Props) {
             </div>
           )
         })
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between border-t border-border px-5 py-3">
+          <span className="text-[12px] text-muted-foreground">
+            {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, rows.length)} de {rows.length}
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent/50 disabled:opacity-30"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`flex h-7 min-w-7 items-center justify-center rounded-md px-2 text-[12px] font-medium transition-colors ${
+                  p === page
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-accent/50'
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent/50 disabled:opacity-30"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )
