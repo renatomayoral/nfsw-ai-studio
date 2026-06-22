@@ -120,7 +120,8 @@ const patchSchema = z.object({
     .regex(/^#[0-9a-fA-F]{6}$/)
     .optional(),
   status: z.enum(['live', 'draft']).optional(),
-  telegramBotToken: z.string().max(200).nullable().optional(),
+  telegramChannelId: z.string().max(200).nullable().optional(),
+  telegramChannelTitle: z.string().max(200).nullable().optional(),
 })
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

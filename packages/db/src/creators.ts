@@ -58,8 +58,10 @@ export const creator = pgTable(
     stripeOnboarded: boolean('stripe_onboarded')
       .$defaultFn(() => false)
       .notNull(),
-    /** Telegram bot token from @BotFather — used to gate the creator's VIP channel */
-    telegramBotToken: text('telegram_bot_token'),
+    /** Telegram channel username or id, e.g. "@babibarelli_vip" or "-1001234567890" */
+    telegramChannelId: text('telegram_channel_id'),
+    /** Human-readable channel title for display, e.g. "VIP da Babi 🔥" */
+    telegramChannelTitle: text('telegram_channel_title'),
     /** 'live' | 'draft' */
     status: text('status')
       .$defaultFn(() => 'draft')

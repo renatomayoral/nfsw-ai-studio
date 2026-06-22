@@ -141,7 +141,7 @@ export async function GET(req: NextRequest) {
 const createSchema = z.object({
   name: z.string().min(2).max(60),
   handle: z.string().max(60).optional(),
-  avatarUrl: z.string().url().optional(),
+  avatarUrl: z.string().url().nullish(),
   platformKeys: z.array(z.string()).optional(),
 })
 
@@ -156,46 +156,51 @@ export async function POST(req: NextRequest) {
 
   const { name, handle, avatarUrl, platformKeys } = parsed.data
 
-  // fetch active platforms from DB
-  const allPlatforms = await db
-    .select()
-    .from(platform)
-    .where(eq(platform.active, true))
-    .orderBy(asc(platform.sortOrder))
+  try {
+    // fetch active platforms from DB
+    const allPlatforms = await db
+      .select()
+      .from(platform)
+      .where(eq(platform.active, true))
+      .orderBy(asc(platform.sortOrder))
 
-  // filter to requested keys, or use all active platforms
-  const chosen = platformKeys?.length
-    ? allPlatforms.filter((p) => platformKeys.includes(p.key))
-    : allPlatforms
+    // filter to requested keys, or use all active platforms
+    const chosen = platformKeys?.length
+      ? allPlatforms.filter((p) => platformKeys.includes(p.key))
+      : allPlatforms
 
-  // ensure a unique slug
-  let slug = slugify(name)
-  const existing = await db.query.creator.findFirst({ where: eq(creator.slug, slug) })
-  if (existing) slug = `${slug}-${randomUUID().slice(0, 4)}`
+    // ensure a unique slug
+    let slug = slugify(name)
+    const existing = await db.query.creator.findFirst({ where: eq(creator.slug, slug) })
+    if (existing) slug = `${slug}-${randomUUID().slice(0, 4)}`
 
-  const creatorId = randomUUID()
-  await db.insert(creator).values({
-    id: creatorId,
-    userId: session.user.id,
-    name,
-    slug,
-    handle: handle ?? `@${slug.replace(/-/g, '')}`,
-    avatarUrl: avatarUrl ?? null,
-    status: 'draft',
-  })
+    const creatorId = randomUUID()
+    await db.insert(creator).values({
+      id: creatorId,
+      userId: session.user.id,
+      name,
+      slug,
+      handle: handle ?? `@${slug.replace(/-/g, '')}`,
+      avatarUrl: avatarUrl ?? null,
+      status: 'draft',
+    })
 
-  if (chosen.length) {
-    await db.insert(creatorLink).values(
-      chosen.map((p, i) => ({
-        id: randomUUID(),
-        creatorId,
-        platform: p.key,
-        label: p.label,
-        url: p.baseUrl,
-        sortOrder: i,
-      })),
-    )
+    if (chosen.length) {
+      await db.insert(creatorLink).values(
+        chosen.map((p, i) => ({
+          id: randomUUID(),
+          creatorId,
+          platform: p.key,
+          label: p.label,
+          url: p.baseUrl,
+          sortOrder: i,
+        })),
+      )
+    }
+
+    return NextResponse.json({ id: creatorId, slug }, { status: 201 })
+  } catch (err) {
+    console.error('[POST /api/creators]', err)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-
-  return NextResponse.json({ id: creatorId, slug }, { status: 201 })
 }

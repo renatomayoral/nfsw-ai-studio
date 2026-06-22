@@ -70,7 +70,11 @@ export function StepCreator({ state, updateState, onNext, onBack }: Props) {
           platformKeys: state.selectedPlatforms,
         }),
       })
-      if (!res.ok) { setError('Erro ao criar a criadora. Tente novamente.'); return }
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        setError(`Erro ${res.status}: ${JSON.stringify(body)}`)
+        return
+      }
       const { id, slug: creatorSlug } = await res.json()
 
       // advance onboarding step in DB
