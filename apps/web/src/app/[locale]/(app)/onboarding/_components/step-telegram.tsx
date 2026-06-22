@@ -12,49 +12,81 @@ type Props = {
   onBack: () => void
 }
 
-type VerifyState = 'idle' | 'loading' | 'success' | 'error'
+type Mode = 'choose' | 'create' | 'connect'
+type Status = 'idle' | 'loading' | 'success' | 'error'
 
 const PAYMENT_OPTIONS = [
-  { key: 'stripe', label: 'Stripe', desc: 'Cartão de crédito internacional (USD/EUR)', color: '#635bff' },
-  { key: 'pix_auto', label: 'Pix Automático', desc: 'Débito recorrente via C6 Bank (BRL)', color: '#00c274' },
-  { key: 'pix_manual', label: 'Pix Manual', desc: 'QR Code gerado a cada cobrança (BRL)', color: '#00c274' },
+  { key: 'stripe',     label: 'Stripe',         desc: 'Cartão de crédito internacional (USD/EUR)', color: '#635bff' },
+  { key: 'pix_auto',  label: 'Pix Automático',  desc: 'Débito recorrente via C6 Bank (BRL)',        color: '#00c274' },
+  { key: 'pix_manual',label: 'Pix Manual',       desc: 'QR Code gerado a cada cobrança (BRL)',       color: '#00c274' },
 ]
 
 const PIX_KEY_TYPES = [
-  { value: 'cpf', label: 'CPF' },
-  { value: 'cnpj', label: 'CNPJ' },
-  { value: 'email', label: 'E-mail' },
-  { value: 'phone', label: 'Telefone' },
+  { value: 'cpf',    label: 'CPF' },
+  { value: 'cnpj',   label: 'CNPJ' },
+  { value: 'email',  label: 'E-mail' },
+  { value: 'phone',  label: 'Telefone' },
   { value: 'random', label: 'Chave aleatória' },
 ]
 
 export function StepTelegram({ state, updateState, onNext, onBack }: Props) {
-  // Channel connect
-  const [channelUsername, setChannelUsername] = useState('')
-  const [verifyState, setVerifyState] = useState<VerifyState>('idle')
-  const [channelTitle, setChannelTitle] = useState<string | null>(null)
-  const [channelError, setChannelError] = useState<string | null>(null)
+  const [mode, setMode] = useState<Mode>('choose')
 
-  // Channel photo
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
-  const [uploading, setUploading] = useState(false)
+  // Create mode
+  const [channelTitle, setChannelTitle] = useState(state.creatorSlug ? '' : '')
+  const [channelDesc, setChannelDesc] = useState('')
+  const [createStatus, setCreateStatus] = useState<Status>('idle')
+  const [createdInviteLink, setCreatedInviteLink] = useState<string | null>(null)
+
+  // Connect mode
+  const [channelUsername, setChannelUsername] = useState('')
+  const [connectStatus, setConnectStatus] = useState<Status>('idle')
+  const [connectedTitle, setConnectedTitle] = useState<string | null>(null)
+
+  // Shared
+  const [error, setError] = useState<string | null>(null)
+  const channelDone = createStatus === 'success' || connectStatus === 'success'
 
   // Payment methods
   const [payments, setPayments] = useState<Set<string>>(new Set())
-
-  // Pix key
   const [pixKey, setPixKey] = useState('')
   const [pixKeyType, setPixKeyType] = useState('cpf')
-
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
-
   const hasAnyPix = payments.has('pix_auto') || payments.has('pix_manual')
 
-  async function handleVerify() {
+  // ── Create channel ──────────────────────────────────────────────────────────
+
+  async function handleCreate() {
+    if (!channelTitle.trim() || !state.creatorId) return
+    setCreateStatus('loading')
+    setError(null)
+    try {
+      const res = await fetch('/api/telegram/create-channel', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          creatorId: state.creatorId,
+          title: channelTitle.trim(),
+          description: channelDesc.trim() || undefined,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error ?? 'Erro ao criar o canal.'); setCreateStatus('error'); return }
+      setCreatedInviteLink(data.inviteLink)
+      setCreateStatus('success')
+    } catch {
+      setError('Erro de conexão. Tente novamente.')
+      setCreateStatus('error')
+    }
+  }
+
+  // ── Connect existing channel ────────────────────────────────────────────────
+
+  async function handleConnect() {
     if (!channelUsername.trim() || !state.creatorId) return
-    setVerifyState('loading')
-    setChannelError(null)
+    setConnectStatus('loading')
+    setError(null)
     try {
       const res = await fetch('/api/telegram/verify-channel', {
         method: 'POST',
@@ -62,36 +94,19 @@ export function StepTelegram({ state, updateState, onNext, onBack }: Props) {
         body: JSON.stringify({ creatorId: state.creatorId, channelUsername: channelUsername.trim() }),
       })
       const data = await res.json()
-      if (!res.ok) { setChannelError(data.error ?? 'Erro ao verificar.'); setVerifyState('error'); return }
-      setChannelTitle(data.channelTitle)
-      setVerifyState('success')
+      if (!res.ok) { setError(data.error ?? 'Erro ao verificar.'); setConnectStatus('error'); return }
+      setConnectedTitle(data.channelTitle)
+      setConnectStatus('success')
     } catch {
-      setChannelError('Erro de conexão. Tente novamente.')
-      setVerifyState('error')
+      setError('Erro de conexão. Tente novamente.')
+      setConnectStatus('error')
     }
   }
 
-  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file || !state.creatorId) return
-    setUploading(true)
-    try {
-      const form = new FormData()
-      form.append('file', file)
-      const res = await fetch(`/api/upload/channel-photo?creatorId=${state.creatorId}`, { method: 'POST', body: form })
-      const data = await res.json()
-      if (data.url) setPhotoUrl(data.url)
-    } finally {
-      setUploading(false)
-    }
-  }
+  // ── Save payment config + advance ──────────────────────────────────────────
 
   function togglePayment(key: string) {
-    setPayments(prev => {
-      const next = new Set(prev)
-      next.has(key) ? next.delete(key) : next.add(key)
-      return next
-    })
+    setPayments(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n })
   }
 
   async function handleSave() {
@@ -99,18 +114,14 @@ export function StepTelegram({ state, updateState, onNext, onBack }: Props) {
     setSaving(true)
     setSaveError(null)
     try {
-      const body: Record<string, unknown> = {
-        acceptedPayments: [...payments],
-      }
-      if (hasAnyPix && pixKey.trim()) {
-        body.pixKey = pixKey.trim()
-        body.pixKeyType = pixKeyType
-      }
+      const body: Record<string, unknown> = { acceptedPayments: [...payments] }
+      if (hasAnyPix && pixKey.trim()) { body.pixKey = pixKey.trim(); body.pixKeyType = pixKeyType }
       await fetch(`/api/creators/${state.creatorId}`, {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(body),
       })
+      updateState({ acceptedPayments: [...payments] })
       onNext()
     } catch {
       setSaveError('Erro ao salvar. Tente novamente.')
@@ -124,104 +135,157 @@ export function StepTelegram({ state, updateState, onNext, onBack }: Props) {
       <div>
         <h2 className="text-2xl font-extrabold tracking-tight">Canal VIP no Telegram</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Configure o canal privado, a foto e os meios de pagamento aceitos.
+          Configure o canal privado e os meios de pagamento aceitos.
         </p>
       </div>
 
-      {/* ── 1. Connect channel ── */}
+      {/* ── 1. Canal ── */}
       <section className="flex flex-col gap-4">
-        <h3 className="text-[13.5px] font-bold uppercase tracking-widest text-muted-foreground">1. Conectar canal</h3>
-        <div className="rounded-2xl border border-border bg-card p-5">
-          <ol className="flex flex-col gap-3 mb-4">
-            {[
-              <>Crie um canal privado no Telegram com o nome e foto que quiser</>,
-              <>Adicione <code className="rounded bg-accent px-1.5 py-0.5 text-[12.5px] font-mono">{BOT_USERNAME}</code> como <strong>administrador</strong> do canal</>,
-            ].map((s, i) => (
-              <li key={i} className="flex items-start gap-3">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-500/15 text-[10px] font-black text-blue-400">{i + 1}</span>
-                <span className="text-[13px] text-muted-foreground">{s}</span>
-              </li>
-            ))}
-          </ol>
-          <div className="flex gap-2">
-            <input
-              value={channelUsername}
-              onChange={e => { setChannelUsername(e.target.value); setVerifyState('idle'); setChannelError(null) }}
-              placeholder="@babibarelli_vip ou t.me/babibarelli_vip"
-              className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none transition-colors focus:border-blue-500"
-              onKeyDown={e => e.key === 'Enter' && handleVerify()}
-            />
+        <h3 className="text-[13.5px] font-bold uppercase tracking-widest text-muted-foreground">1. Canal VIP</h3>
+
+        {mode === 'choose' && (
+          <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={handleVerify}
-              disabled={!channelUsername.trim() || verifyState === 'loading'}
-              className="inline-flex items-center gap-2 rounded-xl bg-blue-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-600 disabled:opacity-40"
+              onClick={() => setMode('create')}
+              className="flex flex-col gap-2 rounded-2xl border-2 border-border p-5 text-left hover:border-blue-500 hover:bg-blue-500/5 transition-all"
             >
-              {verifyState === 'loading' && <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity=".25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>}
-              Verificar
+              <span className="text-2xl">✨</span>
+              <p className="text-[14px] font-bold">Criar agora</p>
+              <p className="text-[12px] text-muted-foreground">Criamos o canal automaticamente para você. Só dê um nome.</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('connect')}
+              className="flex flex-col gap-2 rounded-2xl border-2 border-border p-5 text-left hover:border-blue-500 hover:bg-blue-500/5 transition-all"
+            >
+              <span className="text-2xl">🔗</span>
+              <p className="text-[14px] font-bold">Conectar existente</p>
+              <p className="text-[12px] text-muted-foreground">Já tem um canal? Adicione {BOT_USERNAME} como admin e conecte.</p>
             </button>
           </div>
-          {verifyState === 'success' && channelTitle && (
-            <div className="mt-3 flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/8 px-4 py-2.5 text-[13px] font-semibold text-emerald-400">
-              ✓ {channelTitle} conectado
-            </div>
-          )}
-          {channelError && (
-            <p className="mt-3 text-[12.5px] text-red-400">{channelError}</p>
-          )}
-        </div>
-      </section>
+        )}
 
-      {/* ── 2. Channel photo ── */}
-      <section className="flex flex-col gap-4">
-        <h3 className="text-[13.5px] font-bold uppercase tracking-widest text-muted-foreground">2. Foto do canal <span className="normal-case font-normal opacity-60">(opcional)</span></h3>
-        <div className="flex items-center gap-5">
-          <label className="relative cursor-pointer">
-            <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-border bg-accent transition-colors hover:border-blue-500">
-              {photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={photoUrl} alt="" className="h-full w-full object-cover" />
-              ) : uploading ? (
-                <svg className="h-6 w-6 animate-spin text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity=".25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
-              ) : (
-                <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#64748b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-              )}
+        {/* Create mode */}
+        {mode === 'create' && (
+          <div className="rounded-2xl border border-border bg-card p-5 flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <p className="text-[13.5px] font-semibold">Criar canal automaticamente</p>
+              <button type="button" onClick={() => { setMode('choose'); setCreateStatus('idle'); setError(null) }}
+                className="text-[12px] text-muted-foreground hover:text-foreground">
+                ← voltar
+              </button>
             </div>
-            <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handlePhotoChange} />
-          </label>
-          <div className="text-[13px] text-muted-foreground">
-            <p className="font-medium text-foreground">Foto do canal VIP</p>
-            <p>JPG, PNG ou WebP · máx. 5MB</p>
-            <p className="mt-1">Aplicada automaticamente no canal do Telegram.</p>
+
+            {createStatus !== 'success' ? (
+              <>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12.5px] font-semibold">Nome do canal <span className="text-red-400">*</span></label>
+                  <input
+                    value={channelTitle}
+                    onChange={e => setChannelTitle(e.target.value)}
+                    placeholder="VIP da Babi 🔥"
+                    className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12.5px] font-semibold">Descrição <span className="text-muted-foreground font-normal">(opcional)</span></label>
+                  <input
+                    value={channelDesc}
+                    onChange={e => setChannelDesc(e.target.value)}
+                    placeholder="Conteúdo exclusivo para assinantes VIP"
+                    className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-blue-500"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCreate}
+                  disabled={!channelTitle.trim() || createStatus === 'loading'}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-600 disabled:opacity-40"
+                >
+                  {createStatus === 'loading' && <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity=".25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>}
+                  {createStatus === 'loading' ? 'Criando canal…' : 'Criar canal'}
+                </button>
+              </>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/8 px-4 py-3">
+                  <span className="text-emerald-400 text-lg">✓</span>
+                  <div>
+                    <p className="text-[13px] font-semibold text-emerald-400">Canal criado com sucesso!</p>
+                    <p className="text-[12px] text-muted-foreground">{channelTitle} · {BOT_USERNAME} já é admin</p>
+                  </div>
+                </div>
+                {createdInviteLink && (
+                  <div className="rounded-xl border border-border bg-background px-4 py-3">
+                    <p className="text-[12px] font-semibold text-muted-foreground mb-1">Link de convite para a criadora:</p>
+                    <a href={createdInviteLink} target="_blank" rel="noopener noreferrer"
+                      className="text-[12.5px] text-blue-400 break-all hover:underline">
+                      {createdInviteLink}
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        </div>
+        )}
+
+        {/* Connect mode */}
+        {mode === 'connect' && (
+          <div className="rounded-2xl border border-border bg-card p-5 flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <p className="text-[13.5px] font-semibold">Conectar canal existente</p>
+              <button type="button" onClick={() => { setMode('choose'); setConnectStatus('idle'); setError(null) }}
+                className="text-[12px] text-muted-foreground hover:text-foreground">
+                ← voltar
+              </button>
+            </div>
+            <p className="text-[12.5px] text-muted-foreground -mt-2">
+              Adicione <code className="rounded bg-accent px-1.5 py-0.5 font-mono">{BOT_USERNAME}</code> como administrador do canal, depois cole o username abaixo.
+            </p>
+            <div className="flex gap-2">
+              <input
+                value={channelUsername}
+                onChange={e => { setChannelUsername(e.target.value); setConnectStatus('idle'); setError(null) }}
+                placeholder="@babibarelli_vip ou t.me/babibarelli_vip"
+                className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-blue-500"
+                onKeyDown={e => e.key === 'Enter' && handleConnect()}
+              />
+              <button type="button" onClick={handleConnect}
+                disabled={!channelUsername.trim() || connectStatus === 'loading'}
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-600 disabled:opacity-40">
+                {connectStatus === 'loading' && <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity=".25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>}
+                Verificar
+              </button>
+            </div>
+            {connectStatus === 'success' && connectedTitle && (
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/8 px-4 py-2.5 text-[13px] font-semibold text-emerald-400">
+                ✓ {connectedTitle} conectado
+              </div>
+            )}
+          </div>
+        )}
+
+        {error && <p className="text-[12.5px] text-red-400">{error}</p>}
       </section>
 
-      {/* ── 3. Payment methods ── */}
+      {/* ── 2. Meios de pagamento ── */}
       <section className="flex flex-col gap-4">
-        <h3 className="text-[13.5px] font-bold uppercase tracking-widest text-muted-foreground">3. Meios de pagamento</h3>
+        <h3 className="text-[13.5px] font-bold uppercase tracking-widest text-muted-foreground">2. Meios de pagamento</h3>
         <div className="flex flex-col gap-2">
           {PAYMENT_OPTIONS.map(opt => {
             const on = payments.has(opt.key)
             return (
-              <button
-                key={opt.key}
-                type="button"
-                onClick={() => togglePayment(opt.key)}
-                className={[
-                  'flex items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all',
-                  on ? 'border-blue-500 bg-blue-500/5' : 'border-border hover:border-border/60 hover:bg-accent/30',
-                ].join(' ')}
-              >
+              <button key={opt.key} type="button" onClick={() => togglePayment(opt.key)}
+                className={['flex items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all',
+                  on ? 'border-blue-500 bg-blue-500/5' : 'border-border hover:border-border/60 hover:bg-accent/30'].join(' ')}>
                 <div className="h-3 w-3 rounded-full shrink-0" style={{ background: opt.color }} />
                 <div className="flex-1">
                   <p className="text-[13.5px] font-semibold">{opt.label}</p>
                   <p className="text-[12px] text-muted-foreground">{opt.desc}</p>
                 </div>
-                <div className={[
-                  'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all',
-                  on ? 'border-blue-500 bg-blue-500 text-white text-[10px]' : 'border-border',
-                ].join(' ')}>
+                <div className={['flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all',
+                  on ? 'border-blue-500 bg-blue-500 text-white text-[10px]' : 'border-border'].join(' ')}>
                   {on && '✓'}
                 </div>
               </button>
@@ -229,36 +293,25 @@ export function StepTelegram({ state, updateState, onNext, onBack }: Props) {
           })}
         </div>
 
-        {/* Pix key — shown only if any Pix selected */}
         {hasAnyPix && (
           <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5">
             <p className="text-[13.5px] font-semibold">Chave Pix para recebimento</p>
             <p className="text-[12.5px] text-muted-foreground -mt-2">Os repasses serão enviados para esta chave após split automático.</p>
             <div className="flex gap-2">
-              <select
-                value={pixKeyType}
-                onChange={e => setPixKeyType(e.target.value)}
-                className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none transition-colors focus:border-blue-500"
-              >
-                {PIX_KEY_TYPES.map(t => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
+              <select value={pixKeyType} onChange={e => setPixKeyType(e.target.value)}
+                className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-blue-500">
+                {PIX_KEY_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
-              <input
-                value={pixKey}
-                onChange={e => setPixKey(e.target.value)}
+              <input value={pixKey} onChange={e => setPixKey(e.target.value)}
                 placeholder={pixKeyType === 'cpf' ? '000.000.000-00' : pixKeyType === 'email' ? 'email@exemplo.com' : pixKeyType === 'phone' ? '+55 11 99999-9999' : 'Cole a chave aqui'}
-                className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none transition-colors focus:border-blue-500"
-              />
+                className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-blue-500" />
             </div>
           </div>
         )}
       </section>
 
       {saveError && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/8 px-4 py-3 text-[13px] text-red-400">
-          {saveError}
-        </div>
+        <div className="rounded-xl border border-red-500/30 bg-red-500/8 px-4 py-3 text-[13px] text-red-400">{saveError}</div>
       )}
 
       <div className="flex justify-between">
@@ -269,12 +322,8 @@ export function StepTelegram({ state, updateState, onNext, onBack }: Props) {
           <button type="button" onClick={onNext} className="rounded-xl px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground">
             Pular por agora
           </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="inline-flex items-center gap-2 rounded-xl bg-blue-500 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-600 disabled:opacity-40"
-          >
+          <button type="button" onClick={handleSave} disabled={saving}
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-600 disabled:opacity-40">
             {saving && <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity=".25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>}
             Salvar e continuar →
           </button>

@@ -13,9 +13,10 @@
   "dependencies": {
     "@better-auth/stripe": "^1.6.19",
     "@hookform/resolvers": "^5.4.0",
+    "@mtkruto/node": "^0.180.1",
     "@repo/auth": "workspace:*",
-    "@repo/onlyfans-client": "workspace:*",
     "@repo/db": "workspace:*",
+    "@repo/onlyfans-client": "workspace:*",
     "@repo/payments": "workspace:*",
     "@repo/shared": "workspace:*",
     "@repo/ui": "workspace:*",
