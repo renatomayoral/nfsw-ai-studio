@@ -78,6 +78,13 @@
       "when": 1750640400000,
       "tag": "0010_vip_plan_price",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1782244826819,
+      "tag": "0011_youthful_stardust",
+      "breakpoints": true
     }
   ]
 }

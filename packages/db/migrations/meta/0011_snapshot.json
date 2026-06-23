@@ -1,6 +1,6 @@
 {
-  "id": "0009_telegram_channel",
-  "prevId": "0bcd4cf7-8c81-4cf1-b1d6-e353314c4179",
+  "id": "a60f130f-3f33-4bb3-bde9-1c2564f2f824",
+  "prevId": "0010_vip_plan_price",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -720,6 +720,49 @@
           "primaryKey": false,
           "notNull": true
         },
+        "telegram_channel_id": {
+          "name": "telegram_channel_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "telegram_channel_title": {
+          "name": "telegram_channel_title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "channel_photo_url": {
+          "name": "channel_photo_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pix_key": {
+          "name": "pix_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pix_key_type": {
+          "name": "pix_key_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "platform_fee_pct": {
+          "name": "platform_fee_pct",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "accepted_payments": {
+          "name": "accepted_payments",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::text[]"
+        },
         "status": {
           "name": "status",
           "type": "text",
@@ -737,18 +780,6 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
-        },
-        "telegram_channel_id": {
-          "name": "telegram_channel_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "telegram_channel_title": {
-          "name": "telegram_channel_title",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {
@@ -1255,35 +1286,11 @@
           "primaryKey": false,
           "notNull": false
         },
-        "amount": {
-          "name": "amount",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "currency": {
-          "name": "currency",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
         "interval_day": {
           "name": "interval_day",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
-        },
-        "stripe_price_id": {
-          "name": "stripe_price_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "nowpayments_plan_id": {
-          "name": "nowpayments_plan_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "active": {
           "name": "active",
@@ -1328,6 +1335,130 @@
           "tableTo": "creator",
           "columnsFrom": [
             "creator_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.vip_plan_price": {
+      "name": "vip_plan_price",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "plan_id": {
+          "name": "plan_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "currency": {
+          "name": "currency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount_cents": {
+          "name": "amount_cents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider": {
+          "name": "provider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "stripe_price_id": {
+          "name": "stripe_price_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nowpayments_plans_id": {
+          "name": "nowpayments_plans_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "vip_plan_price_plan_idx": {
+          "name": "vip_plan_price_plan_idx",
+          "columns": [
+            {
+              "expression": "plan_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "vip_plan_price_plan_currency_provider_idx": {
+          "name": "vip_plan_price_plan_currency_provider_idx",
+          "columns": [
+            {
+              "expression": "plan_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "currency",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "provider",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "vip_plan_price_plan_id_vip_plan_id_fk": {
+          "name": "vip_plan_price_plan_id_vip_plan_id_fk",
+          "tableFrom": "vip_plan_price",
+          "tableTo": "vip_plan",
+          "columnsFrom": [
+            "plan_id"
           ],
           "columnsTo": [
             "id"

@@ -430,9 +430,10 @@ CLOUD_PROVIDER=gcp  # ou runpod
 
 ## Dependências — Convenções
 
-- Manter sempre os pacotes na versão mais recente (`pnpm update --recursive --latest`)
-- Após atualizar, rodar `tsc --noEmit` para checar breaking changes de tipos (ex: Stripe apiVersion)
-- Quando o Stripe SDK atualizar, ajustar `apiVersion` em `packages/payments/src/index.ts` para a versão exigida pelo tipo
+- **Sempre usar a versão mais recente** de todas as dependências. Ao adicionar ou atualizar qualquer pacote, usar `pnpm add <pkg>@latest` ou `pnpm update --recursive --latest`.
+- Nunca fixar versões antigas sem motivo explícito. Se uma versão específica for necessária por incompatibilidade, documentar o motivo com um comentário no `package.json`.
+- Após atualizar, rodar `pnpm --filter web exec tsc --noEmit` para checar breaking changes de tipos.
+- Quando o Stripe SDK atualizar, ajustar `apiVersion` em `packages/payments/src/index.ts` para a versão exigida pelo tipo.
 
 ---
 

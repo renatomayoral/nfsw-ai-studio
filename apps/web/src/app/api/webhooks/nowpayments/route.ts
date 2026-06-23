@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
 import { db, schema } from '@repo/db'
 import { verifyIpnSignature } from '@/lib/nowpayments'
+import { sendCryptoAccessGranted, sendAccessExpired } from '@/lib/email'
 
 const { vipSubscription, vipPlan, creator } = schema
 
@@ -50,8 +51,8 @@ export async function POST(req: NextRequest) {
       .set({ status: 'active', currentPeriodEnd: periodEnd, updatedAt: new Date() })
       .where(eq(vipSubscription.id, sub.id))
 
-    // Generate one-time Telegram invite link
-    if (botToken && c?.telegramChannelId) {
+    // Generate one-time Telegram invite link and email it to the fan
+    if (botToken && c?.telegramChannelId && sub.fanEmail) {
       try {
         const expireDate = Math.floor(periodEnd.getTime() / 1000)
         const tgRes = await fetch(
@@ -68,8 +69,16 @@ export async function POST(req: NextRequest) {
         )
         const tgData = await tgRes.json()
         const inviteLink = tgData?.result?.invite_link
-        console.log('[nowpayments webhook] invite link created:', inviteLink)
-        // TODO: send inviteLink to sub.fanEmail
+
+        if (inviteLink) {
+          await sendCryptoAccessGranted({
+            to: sub.fanEmail,
+            creatorName: c.name,
+            planTitle: plan?.title ?? 'VIP',
+            inviteLink,
+            periodEnd,
+          }).catch(err => console.error('[nowpayments webhook] failed to send access email:', err))
+        }
       } catch (err) {
         console.error('[nowpayments webhook] failed to create invite link:', err)
       }
@@ -82,11 +91,22 @@ export async function POST(req: NextRequest) {
       .set({ status: 'expired', updatedAt: new Date() })
       .where(eq(vipSubscription.id, sub.id))
 
-    // Ban fan from Telegram channel
-    if (botToken && c?.telegramChannelId && sub.fanEmail) {
-      // We don't have the Telegram user_id here — would need it stored at subscription time.
-      // Log for now; full implementation requires storing Telegram user_id on join.
-      console.log('[nowpayments webhook] EXPIRED — should remove fan from channel:', sub.fanEmail)
+    // Send expiry email and remove fan from Telegram channel
+    if (sub.fanEmail) {
+      const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3000'
+      const renewLink = `${appUrl}/p/${c?.slug ?? ''}`
+      await sendAccessExpired({
+        to: sub.fanEmail,
+        creatorName: c?.name ?? '',
+        planTitle: plan?.title ?? 'VIP',
+        renewLink,
+      }).catch(err => console.error('[nowpayments webhook] failed to send expiry email:', err))
+    }
+
+    // Remove fan from Telegram channel (requires Telegram user_id stored at join time)
+    // TODO: store telegram_user_id on vipSubscription when fan joins via invite link
+    if (botToken && c?.telegramChannelId) {
+      console.log('[nowpayments webhook] EXPIRED — fan should be removed:', sub.fanEmail)
     }
   }
 

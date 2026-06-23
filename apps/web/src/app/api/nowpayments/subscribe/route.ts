@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { eq, and } from 'drizzle-orm'
 import { db, schema } from '@repo/db'
 import { createSubscription } from '@/lib/nowpayments'
+import { sendCryptoPaymentLink } from '@/lib/email'
 
 const { vipPlan, vipPlanPrice, vipSubscription, creator } = schema
 
@@ -65,11 +66,21 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    // Send payment link email via Resend (we control the template)
+    const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3000'
+    const paymentLink = `${appUrl}/pay/crypto/${sub.id}`
+    await sendCryptoPaymentLink({
+      to: email,
+      creatorName: c?.name ?? '',
+      planTitle: plan.title,
+      paymentLink,
+      expireDate: sub.expireDate,
+    }).catch(err => console.error('[subscribe] failed to send email:', err))
+
     return NextResponse.json({
       subscriptionId: sub.id,
       status: sub.status,
       expireDate: sub.expireDate,
-      // Email with payment link was sent by NowPayments automatically
       message: `Link de pagamento enviado para ${email}`,
       creatorName: c?.name,
       planTitle: plan.title,
