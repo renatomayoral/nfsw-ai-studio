@@ -13,6 +13,8 @@ const bodySchema = z.object({
   creatorId: z.string(),
   title: z.string().min(2).max(128),
   description: z.string().max(255).optional(),
+  photoPath: z.string().optional(),       // local path under public/ to set as channel photo
+  creatorUsername: z.string().optional(), // Telegram @username of the creator to add as admin
 })
 
 // POST /api/telegram/create-channel
@@ -25,7 +27,7 @@ export async function POST(req: NextRequest) {
   const parsed = bodySchema.safeParse(await req.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: 'Bad request' }, { status: 400 })
 
-  const { creatorId, title, description } = parsed.data
+  const { creatorId, title, description, photoPath, creatorUsername } = parsed.data
 
   const c = await db.query.creator.findFirst({ where: eq(creator.id, creatorId) })
   if (!c || c.userId !== session.user.id) {
@@ -37,6 +39,8 @@ export async function POST(req: NextRequest) {
       title,
       description,
       botUsername: BOT_USERNAME,
+      photoPath,
+      creatorUsername,
     })
 
     await db

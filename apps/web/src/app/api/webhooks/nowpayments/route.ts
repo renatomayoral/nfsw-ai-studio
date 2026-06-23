@@ -1,0 +1,101 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { eq } from 'drizzle-orm'
+import { db, schema } from '@repo/db'
+import { verifyIpnSignature } from '@/lib/nowpayments'
+
+const { vipSubscription, vipPlan, creator } = schema
+
+// POST /api/webhooks/nowpayments
+// IPN from NowPayments — called on every payment status change.
+export async function POST(req: NextRequest) {
+  const signature = req.headers.get('x-nowpayments-sig') ?? ''
+  const rawBody = await req.text()
+
+  if (!verifyIpnSignature(rawBody, signature)) {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
+  }
+
+  let payload: Record<string, unknown>
+  try {
+    payload = JSON.parse(rawBody)
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  const status = String(payload['payment_status'] ?? payload['status'] ?? '')
+  const nowSubId = String(payload['subscription_id'] ?? payload['order_id'] ?? '')
+
+  if (!nowSubId) return NextResponse.json({ received: true })
+
+  const sub = await db.query.vipSubscription.findFirst({
+    where: eq(vipSubscription.nowpaymentsSubscriptionId, nowSubId),
+  })
+
+  if (!sub) {
+    console.warn('[nowpayments webhook] subscription not found:', nowSubId)
+    return NextResponse.json({ received: true })
+  }
+
+  const plan = await db.query.vipPlan.findFirst({ where: eq(vipPlan.id, sub.planId) })
+  const c = await db.query.creator.findFirst({ where: eq(creator.id, sub.creatorId) })
+  const botToken = process.env['TELEGRAM_BOT_TOKEN']
+
+  if (status === 'PAID') {
+    const periodEnd = plan
+      ? new Date(Date.now() + plan.intervalDay * 86400_000)
+      : new Date(Date.now() + 30 * 86400_000)
+
+    await db
+      .update(vipSubscription)
+      .set({ status: 'active', currentPeriodEnd: periodEnd, updatedAt: new Date() })
+      .where(eq(vipSubscription.id, sub.id))
+
+    // Generate one-time Telegram invite link
+    if (botToken && c?.telegramChannelId) {
+      try {
+        const expireDate = Math.floor(periodEnd.getTime() / 1000)
+        const tgRes = await fetch(
+          `https://api.telegram.org/bot${botToken}/createChatInviteLink`,
+          {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: c.telegramChannelId,
+              member_limit: 1,
+              expire_date: expireDate,
+            }),
+          },
+        )
+        const tgData = await tgRes.json()
+        const inviteLink = tgData?.result?.invite_link
+        console.log('[nowpayments webhook] invite link created:', inviteLink)
+        // TODO: send inviteLink to sub.fanEmail
+      } catch (err) {
+        console.error('[nowpayments webhook] failed to create invite link:', err)
+      }
+    }
+  }
+
+  if (status === 'EXPIRED') {
+    await db
+      .update(vipSubscription)
+      .set({ status: 'expired', updatedAt: new Date() })
+      .where(eq(vipSubscription.id, sub.id))
+
+    // Ban fan from Telegram channel
+    if (botToken && c?.telegramChannelId && sub.fanEmail) {
+      // We don't have the Telegram user_id here — would need it stored at subscription time.
+      // Log for now; full implementation requires storing Telegram user_id on join.
+      console.log('[nowpayments webhook] EXPIRED — should remove fan from channel:', sub.fanEmail)
+    }
+  }
+
+  if (status === 'PARTIALLY_PAID') {
+    await db
+      .update(vipSubscription)
+      .set({ status: 'past_due', updatedAt: new Date() })
+      .where(eq(vipSubscription.id, sub.id))
+  }
+
+  return NextResponse.json({ received: true })
+}

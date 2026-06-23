@@ -20,6 +20,8 @@ const PAYMENT_OPTIONS = [
   { key: 'stripe',     label: 'Stripe',         desc: 'Cartão de crédito internacional (USD/EUR)', color: '#635bff' },
   { key: 'pix_auto',  label: 'Pix Automático',  desc: 'Débito recorrente via C6 Bank (BRL)',        color: '#00c274' },
   { key: 'pix_manual',label: 'Pix Manual',       desc: 'QR Code gerado a cada cobrança (BRL)',       color: '#00c274' },
+  { key: 'crypto',     label: 'Crypto (único)',    desc: 'Pagamento avulso — BTC, ETH, USDT e +100 via NowPayments', color: '#f7931a' },
+  { key: 'crypto_sub', label: 'Crypto (assinatura)', desc: 'Cobrança recorrente automática via NowPayments Subscriptions', color: '#e67e22' },
 ]
 
 const PIX_KEY_TYPES = [
@@ -34,10 +36,12 @@ export function StepTelegram({ state, updateState, onNext, onBack }: Props) {
   const [mode, setMode] = useState<Mode>('choose')
 
   // Create mode
-  const [channelTitle, setChannelTitle] = useState(state.creatorSlug ? '' : '')
+  const [channelTitle, setChannelTitle] = useState('')
   const [channelDesc, setChannelDesc] = useState('')
+  const [creatorTgUsername, setCreatorTgUsername] = useState('')
   const [createStatus, setCreateStatus] = useState<Status>('idle')
   const [createdInviteLink, setCreatedInviteLink] = useState<string | null>(null)
+  const [uploadedPhotoPath, setUploadedPhotoPath] = useState<string | null>(null)
 
   // Connect mode
   const [channelUsername, setChannelUsername] = useState('')
@@ -65,7 +69,9 @@ export function StepTelegram({ state, updateState, onNext, onBack }: Props) {
       form.append('file', file)
       form.append('creatorId', state.creatorId)
       const res = await fetch('/api/upload/channel-photo', { method: 'POST', body: form })
-      if (!res.ok) { const d = await res.json(); setPhotoError(d.error ?? 'Erro no upload') }
+      const d = await res.json()
+      if (!res.ok) { setPhotoError(d.error ?? 'Erro no upload') }
+      else if (d.path) setUploadedPhotoPath(d.path)
     } catch {
       setPhotoError('Erro de conexão.')
     } finally {
@@ -95,6 +101,8 @@ export function StepTelegram({ state, updateState, onNext, onBack }: Props) {
           creatorId: state.creatorId,
           title: channelTitle.trim(),
           description: channelDesc.trim() || undefined,
+          photoPath: uploadedPhotoPath ?? undefined,
+          creatorUsername: creatorTgUsername.trim() || undefined,
         }),
       })
       const data = await res.json()
@@ -258,6 +266,18 @@ export function StepTelegram({ state, updateState, onNext, onBack }: Props) {
                     placeholder="Conteúdo exclusivo para assinantes VIP"
                     className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-blue-500"
                   />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12.5px] font-semibold">
+                    Seu @username no Telegram <span className="text-muted-foreground font-normal">(opcional)</span>
+                  </label>
+                  <input
+                    value={creatorTgUsername}
+                    onChange={e => setCreatorTgUsername(e.target.value)}
+                    placeholder="@babibarelli"
+                    className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-blue-500"
+                  />
+                  <p className="text-[11.5px] text-muted-foreground">Se informado, você será adicionada como administradora do canal.</p>
                 </div>
                 <button
                   type="button"

@@ -141,7 +141,7 @@ export async function GET(req: NextRequest) {
 const createSchema = z.object({
   name: z.string().min(2).max(60),
   handle: z.string().max(60).optional(),
-  avatarUrl: z.string().url().nullish(),
+  avatarUrl: z.string().nullish(),
   platformKeys: z.array(z.string()).optional(),
 })
 

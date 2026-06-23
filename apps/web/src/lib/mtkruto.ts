@@ -1,6 +1,8 @@
 // MTKruto client — authenticated as the Creators Link user account.
 // Used to create Telegram channels on behalf of creators.
 
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import { Client } from '@mtkruto/node'
 
 const API_ID = parseInt(process.env['TELEGRAM_API_ID'] ?? '', 10)
@@ -59,6 +61,8 @@ export async function createTelegramChannel(params: {
   title: string
   description?: string
   botUsername: string
+  photoPath?: string       // path relative to public/ e.g. "avatars/uuid.jpg"
+  creatorUsername?: string // Telegram @username to add as admin
 }): Promise<CreateChannelResult> {
   const client = await getTelegramClient()
 
@@ -106,13 +110,73 @@ export async function createTelegramChannel(params: {
     console.error('[mtkruto] failed to add bot as admin:', err)
   }
 
-  // 3. Generate invite link for the creator
+  // 3. Add creator as admin (if username provided)
+  if (params.creatorUsername) {
+    const creatorUname = params.creatorUsername.replace('@', '')
+    try {
+      const resolved = await client.invoke({
+        _: 'contacts.resolveUsername',
+        username: creatorUname,
+      }) as { users: Array<{ id: bigint | number; access_hash?: bigint }> }
+
+      const creatorUser = resolved.users?.[0]
+      if (creatorUser) {
+        const creatorId = typeof creatorUser.id === 'bigint' ? creatorUser.id : BigInt(creatorUser.id)
+        await client.invoke({
+          _: 'channels.editAdmin',
+          channel: inputChannel,
+          user_id: { _: 'inputUser', user_id: creatorId, access_hash: creatorUser.access_hash ?? 0n },
+          admin_rights: ADMIN_RIGHTS,
+          rank: 'Criadora',
+        })
+      }
+    } catch (err) {
+      console.error('[mtkruto] failed to add creator as admin:', err)
+    }
+  }
+
+  // 4. Set channel photo (if provided)
+  if (params.photoPath) {
+    try {
+      const publicDir = join(process.cwd(), 'public')
+      // strip leading slash if present
+      const relPath = params.photoPath.replace(/^\//, '')
+      const fileBytes = await readFile(join(publicDir, relPath))
+      const uploaded = await client.invoke({
+        _: 'upload.saveFilePart',
+        file_id: BigInt(Date.now()),
+        file_part: 0,
+        bytes: fileBytes,
+      }) as { _: string }
+
+      if (uploaded) {
+        await client.invoke({
+          _: 'channels.editPhoto',
+          channel: inputChannel,
+          photo: {
+            _: 'inputChatUploadedPhoto',
+            file: {
+              _: 'inputFile',
+              id: BigInt(Date.now()),
+              parts: 1,
+              name: relPath.split('/').pop() ?? 'photo.jpg',
+              md5_checksum: '',
+            },
+          },
+        }).catch((err: unknown) => console.error('[mtkruto] editPhoto failed:', err))
+      }
+    } catch (err) {
+      console.error('[mtkruto] failed to set channel photo:', err)
+    }
+  }
+
+  // 5. Generate invite link for the creator
   const exportedLink = await client.invoke({
     _: 'messages.exportChatInvite',
     peer: { _: 'inputPeerChannel', channel_id: rawId, access_hash: accessHash },
   }) as { link?: string }
 
-  // 4. Leave the channel
+  // 6. Leave the channel
   await client.invoke({
     _: 'channels.leaveChannel',
     channel: inputChannel,

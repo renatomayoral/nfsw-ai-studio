@@ -7,7 +7,16 @@
  */
 
 import { createInterface } from 'node:readline'
-import { Client } from '@mtkruto/node'
+import { createRequire } from 'node:module'
+import { fileURLToPath } from 'node:url'
+import { resolve, dirname } from 'node:path'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const require = createRequire(import.meta.url)
+
+// Resolve @mtkruto/node from apps/web where it's installed
+const mtkrutoPath = resolve(__dirname, '../apps/web/node_modules/@mtkruto/node/script/mod.js')
+const { Client } = await import(mtkrutoPath)
 
 const rl = createInterface({ input: process.stdin, output: process.stdout })
 const ask = (q) => new Promise((resolve) => rl.question(q, resolve))

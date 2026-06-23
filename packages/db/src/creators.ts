@@ -192,6 +192,8 @@ export const vipPlanPrice = pgTable(
     provider: text('provider').notNull(),
     /** Stripe Price id when provider = stripe */
     stripePriceId: text('stripe_price_id'),
+    /** NOWPayments subscription plan id when provider = crypto */
+    nowpaymentsPlansId: text('nowpayments_plans_id'),
     active: boolean('active')
       .$defaultFn(() => true)
       .notNull(),

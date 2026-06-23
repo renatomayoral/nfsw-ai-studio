@@ -13,7 +13,8 @@ type Props = {
 type PriceRow = {
   currency: string
   amountCents: number
-  provider: 'stripe' | 'pix_auto' | 'pix_manual'
+  provider: 'stripe' | 'pix_auto' | 'pix_manual' | 'crypto' | 'crypto_sub'
+  nowpaymentsPlansId?: string
 }
 
 type PlanDraft = {
@@ -26,7 +27,7 @@ type PlanDraft = {
 
 const CURRENCY_OPTIONS = [
   { value: 'brl', label: 'BRL', symbol: 'R$', providers: ['pix_auto', 'pix_manual'] as const },
-  { value: 'usd', label: 'USD', symbol: 'US$', providers: ['stripe'] as const },
+  { value: 'usd', label: 'USD', symbol: 'US$', providers: ['stripe', 'crypto'] as const },
   { value: 'eur', label: 'EUR', symbol: '€', providers: ['stripe'] as const },
 ]
 
@@ -34,6 +35,7 @@ const PROVIDER_LABELS: Record<string, string> = {
   stripe: 'Stripe',
   pix_auto: 'Pix Automático',
   pix_manual: 'Pix Manual',
+  crypto: 'Crypto (NowPayments)',
 }
 
 const INTERVAL_OPTIONS = [
@@ -64,6 +66,8 @@ export function StepPlans({ state, updateState, onNext, onBack }: Props) {
   const hasStripe = state.stripeOnboarded
   const hasPixAuto = enabledPayments.includes('pix_auto')
   const hasPixManual = enabledPayments.includes('pix_manual')
+  const hasCrypto = enabledPayments.includes('crypto')
+  const hasCryptoSub = enabledPayments.includes('crypto_sub')
 
   function updatePlan(id: string, patch: Partial<PlanDraft>) {
     setPlans(prev => prev.map(p => p.id === id ? { ...p, ...patch } : p))
@@ -75,6 +79,18 @@ export function StepPlans({ state, updateState, onNext, onBack }: Props) {
 
   function removePlan(id: string) {
     setPlans(prev => prev.filter(p => p.id !== id))
+  }
+
+  function setNowpaymentsPlansId(planId: string, nowpaymentsPlansId: string) {
+    setPlans(prev => prev.map(p => {
+      if (p.id !== planId) return p
+      const existing = p.prices.filter(pr => pr.provider !== 'crypto_sub')
+      const cryptoSubRow = p.prices.find(pr => pr.provider === 'crypto_sub')
+      if (cryptoSubRow) {
+        return { ...p, prices: [...existing, { ...cryptoSubRow, nowpaymentsPlansId }] }
+      }
+      return p
+    }))
   }
 
   function setPrice(planId: string, currency: string, provider: string, rawValue: string) {
@@ -262,9 +278,57 @@ export function StepPlans({ state, updateState, onNext, onBack }: Props) {
                 </div>
               )}
 
-              {!hasStripe && !hasPixAuto && !hasPixManual && (
+              {/* Crypto único — NowPayments */}
+              {hasCrypto && (
+                <div className="rounded-xl border border-border bg-background p-3 flex flex-col gap-2">
+                  <p className="text-[11.5px] font-bold text-muted-foreground uppercase tracking-wider">Crypto único — NowPayments</p>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11.5px] text-muted-foreground">Preço em USD</label>
+                    <div className="flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5">
+                      <span className="text-[12px] text-muted-foreground">US$</span>
+                      <input
+                        type="number"
+                        min="1"
+                        step="0.01"
+                        value={getPriceValue(plan, 'usd', 'crypto')}
+                        onChange={e => setPrice(plan.id, 'usd', 'crypto', e.target.value)}
+                        placeholder="9.90"
+                        className="flex-1 bg-transparent text-sm outline-none"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">Cliente escolhe a moeda crypto. Pagamento único por período.</p>
+                </div>
+              )}
+
+              {/* Crypto assinatura recorrente — NowPayments Subscriptions */}
+              {hasCryptoSub && (
+                <div className="rounded-xl border border-border bg-background p-3 flex flex-col gap-2">
+                  <p className="text-[11.5px] font-bold text-muted-foreground uppercase tracking-wider">Crypto assinatura — NowPayments</p>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11.5px] text-muted-foreground">Preço em USD</label>
+                    <div className="flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5">
+                      <span className="text-[12px] text-muted-foreground">US$</span>
+                      <input
+                        type="number"
+                        min="1"
+                        step="0.01"
+                        value={getPriceValue(plan, 'usd', 'crypto_sub')}
+                        onChange={e => setPrice(plan.id, 'usd', 'crypto_sub', e.target.value)}
+                        placeholder="9.90"
+                        className="flex-1 bg-transparent text-sm outline-none"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    O plano de assinatura é criado automaticamente no NowPayments ao salvar. NowPayments envia o link de renovação por email 1 dia antes de vencer.
+                  </p>
+                </div>
+              )}
+
+              {!hasStripe && !hasPixAuto && !hasPixManual && !hasCrypto && !hasCryptoSub && (
                 <p className="text-[12.5px] text-amber-400 rounded-xl border border-amber-500/20 bg-amber-500/8 px-4 py-3">
-                  Nenhum meio de pagamento configurado. Volte ao passo anterior para selecionar Stripe ou Pix.
+                  Nenhum meio de pagamento configurado. Volte ao passo anterior para selecionar Stripe, Pix ou Crypto.
                 </p>
               )}
 

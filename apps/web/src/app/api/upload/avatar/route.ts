@@ -37,5 +37,6 @@ export async function POST(req: NextRequest) {
   const bytes = await file.arrayBuffer()
   await writeFile(path.join(UPLOAD_DIR, filename), Buffer.from(bytes))
 
-  return NextResponse.json({ url: `/avatars/${filename}` }, { status: 201 })
+  const origin = req.headers.get('origin') ?? 'http://localhost:3000'
+  return NextResponse.json({ url: `${origin}/avatars/${filename}` }, { status: 201 })
 }

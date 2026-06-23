@@ -70,5 +70,5 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ url, telegramApplied }, { status: 201 })
+  return NextResponse.json({ url, path: `avatars/${filename}`, telegramApplied }, { status: 201 })
 }
