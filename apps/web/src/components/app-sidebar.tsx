@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { LayoutDashboard, Users, Settings, LogOut } from 'lucide-react'
+import { LayoutDashboard, Users, Settings, LogOut, Gift } from 'lucide-react'
 import { authClient } from '@repo/auth/client'
 import {
   Sidebar,
@@ -57,6 +57,7 @@ export function AppSidebar() {
   const navItems = [
     { href: `/${locale}/dashboard`, label: t('navigation.dashboard'), icon: LayoutDashboard },
     { href: `/${locale}/creators`, label: t('navigation.creators'), icon: Users },
+    { href: `/${locale}/referral`, label: t('navigation.referral'), icon: Gift },
     { href: `/${locale}/settings`, label: t('navigation.settings'), icon: Settings },
   ]
 

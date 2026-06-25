@@ -75,7 +75,7 @@ export function CreatorLinks({ creatorId, links }: Props) {
         {availableToAdd.length > 0 && !adding && (
           <button
             onClick={() => setAdding(true)}
-            className="flex items-center gap-1 rounded-lg px-2.5 py-1 text-[12px] font-semibold text-blue-500 hover:bg-blue-500/10"
+            className="flex items-center gap-1 rounded-lg px-2.5 py-1 text-[12px] font-semibold text-blue-500 hover:bg-blue-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Plus className="h-3.5 w-3.5" />
             Adicionar
@@ -103,10 +103,12 @@ export function CreatorLinks({ creatorId, links }: Props) {
         {/* Add new link form */}
         {adding && (
           <div className="flex flex-col gap-2 rounded-xl border border-dashed border-blue-500/40 bg-blue-500/5 p-3">
+            <label htmlFor="new-platform-select" className="sr-only">Selecionar plataforma</label>
             <select
+              id="new-platform-select"
               value={newPlatform}
               onChange={(e) => handlePlatformSelect(e.target.value)}
-              className="bg-background rounded-lg border px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="bg-background rounded-lg border px-3 py-2 text-[13px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <option value="">Selecionar plataforma…</option>
               {availableToAdd.map((p) => (
@@ -128,14 +130,14 @@ export function CreatorLinks({ creatorId, links }: Props) {
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => { setAdding(false); setNewPlatform(''); setNewUrl('') }}
-                className="rounded-lg px-3 py-1.5 text-[12.5px] text-muted-foreground hover:text-foreground"
+                className="rounded-lg px-3 py-1.5 text-[12.5px] text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 Cancelar
               </button>
               <button
                 onClick={() => addLink.mutate()}
                 disabled={!newPlatform || !newUrl || addLink.isPending}
-                className="rounded-lg bg-blue-500 px-3 py-1.5 text-[12.5px] font-semibold text-white hover:bg-blue-600 disabled:opacity-40"
+                className="rounded-lg bg-blue-500 px-3 py-1.5 text-[12.5px] font-semibold text-white hover:bg-blue-600 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {addLink.isPending ? 'Salvando…' : 'Adicionar'}
               </button>
@@ -162,7 +164,7 @@ function LinkRow({
 
   return (
     <div className="flex items-center gap-2.5 rounded-xl border border-border bg-background px-3 py-2.5">
-      <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground/40" />
+      <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground/40" aria-hidden="true" />
       <div className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: meta.color }} />
       <span className="w-24 shrink-0 text-[12.5px] font-semibold">{link.label}</span>
       <Input
@@ -175,10 +177,10 @@ function LinkRow({
       <span className="shrink-0 text-[11px] text-muted-foreground">{link.clicks} cliques</span>
       <button
         onClick={onRemove}
-        className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-        title="Remover link"
+        aria-label={`Remover link ${link.label}`}
+        className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <Trash2 className="h-3.5 w-3.5" />
+        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
       </button>
     </div>
   )

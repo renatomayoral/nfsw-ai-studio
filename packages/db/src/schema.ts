@@ -200,6 +200,28 @@ export const anonymousSession = pgTable('anonymous_session', {
     .notNull(),
 })
 
+// ─── Referral program ────────────────────────────────────────────────────────
+// One row per (referrer, referred) pair. Created when someone signs up via ?ref=
+
+export const referral = pgTable('referral', {
+  id: text('id').primaryKey(),
+  /** User who shared the referral link */
+  referrerId: text('referrer_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  /** User who signed up via the referral link */
+  referredId: text('referred_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  /** Commission rate applied (e.g. 0.03 = 3%) */
+  commissionRate: text('commission_rate').notNull().default('0.03'),
+  /** Commission active until this date (6 months from signup) */
+  activeUntil: timestamp('active_until').notNull(),
+  createdAt: timestamp('created_at')
+    .$defaultFn(() => new Date())
+    .notNull(),
+})
+
 // ─── Schema export ────────────────────────────────────────────────────────────
 
 export const schema = {
@@ -219,4 +241,5 @@ export const schema = {
   userProfile,
   usageQuota,
   anonymousSession,
+  referral,
 }

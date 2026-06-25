@@ -4,11 +4,12 @@ import { notFound } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { db, schema } from '@repo/db'
 import { platformMeta } from '@/lib/creators'
+import { resolveConfig } from '@/lib/page-templates'
 import { VipPlans } from './vip-plans'
 
 const { creator, creatorLink, vipPlan, vipPlanPrice } = schema
 
-export const revalidate = 60 // ISR: regenerate the page at most once a minute
+export const revalidate = 60
 
 async function getCreator(slug: string) {
   const c = await db.query.creator.findFirst({ where: eq(creator.slug, slug) })
@@ -28,11 +29,12 @@ async function getCreator(slug: string) {
   ])
   const activePlans = plans.filter((p) => p.active)
   const planIds = activePlans.map((p) => p.id)
-  const prices = planIds.length > 0
-    ? await db.query.vipPlanPrice.findMany({
-        where: (vpp, { inArray }) => inArray(vpp.planId, planIds),
-      })
-    : []
+  const prices =
+    planIds.length > 0
+      ? await db.query.vipPlanPrice.findMany({
+          where: (vpp, { inArray }) => inArray(vpp.planId, planIds),
+        })
+      : []
   const pricesByPlan = prices.reduce<Record<string, typeof prices>>((acc, pr) => {
     ;(acc[pr.planId] ??= []).push(pr)
     return acc
@@ -69,48 +71,74 @@ export default async function CreatorPage({ params }: { params: Promise<{ slug: 
   const c = await getCreator(slug)
   if (!c) notFound()
 
-  const accent = c.accentColor || '#ec4899'
+  const cfg = resolveConfig(
+    c.pageTemplate ?? 'neon-dark',
+    (() => {
+      try {
+        return c.pageConfig ? JSON.parse(c.pageConfig) : null
+      } catch {
+        return null
+      }
+    })(),
+  )
+
+  const accent = cfg.accentColor
   const featured = c.links[0]
   const rest = c.links.slice(1)
+
+  const btnRadius =
+    cfg.buttonStyle === 'pill' ? '22px' : cfg.buttonStyle === 'sharp' ? '6px' : '14px'
+  const isLight = cfg.bgFrom.startsWith('#f') || cfg.bgFrom === '#ffffff'
 
   return (
     <div
       className="flex min-h-screen justify-center px-4"
-      style={{ background: 'radial-gradient(620px 460px at 50% -4%, #2a1230 0%, #0a0a0c 60%)' }}
+      style={{
+        background: `radial-gradient(620px 460px at 50% -4%, ${cfg.bgFrom} 0%, ${cfg.bgTo} 60%)`,
+        fontFamily: cfg.fontFamily,
+        color: cfg.textColor,
+      }}
     >
-      <div
-        aria-hidden
-        className="animate-cglow pointer-events-none fixed -top-20 left-1/2 h-110 w-130 max-w-[96vw] -translate-x-1/2 blur-[50px]"
-        style={{
-          background: `radial-gradient(circle, ${accent} 0%, transparent 60%)`,
-          opacity: 0.4,
-        }}
-      />
+      {cfg.glowOpacity > 0 && (
+        <div
+          aria-hidden
+          className="animate-cglow pointer-events-none fixed -top-20 left-1/2 h-110 w-130 max-w-[96vw] -translate-x-1/2 blur-[50px]"
+          style={{
+            background: `radial-gradient(circle, ${accent} 0%, transparent 60%)`,
+            opacity: cfg.glowOpacity,
+          }}
+        />
+      )}
 
-      <main className="relative w-full max-w-107.5 px-1.5 pt-16 pb-12 text-center text-white">
-        {/* avatar with animated ring */}
+      <main className="relative w-full max-w-107.5 px-1.5 pt-16 pb-12 text-center">
+        {/* avatar */}
         <div className="animate-cfloat relative mx-auto h-33 w-33">
           <div
             className="animate-cspin absolute inset-0 rounded-full"
             style={{
-              background: `conic-gradient(from 0deg, ${accent}, #7c3aed, #f472b6, #a78bfa, ${accent})`,
-              filter: 'drop-shadow(0 0 16px rgba(236,72,153,.6))',
+              background: cfg.avatarRing,
+              filter: cfg.glowOpacity > 0 ? `drop-shadow(0 0 16px ${accent}99)` : 'none',
             }}
           />
-          <div className="absolute inset-1 rounded-full" style={{ background: '#0a0a0c' }} />
+          <div className="absolute inset-1 rounded-full" style={{ background: cfg.bgTo }} />
           {c.avatarUrl ? (
-            <Image
-              src={c.avatarUrl}
-              alt={c.name}
-              fill
-              priority
-              sizes="132px"
-              className="absolute inset-2 h-[calc(100%-16px)]! w-[calc(100%-16px)]! rounded-full object-cover"
-            />
+            <div className="absolute inset-2 overflow-hidden rounded-full">
+              <Image
+                src={c.avatarUrl}
+                alt={c.name}
+                fill
+                priority
+                sizes="116px"
+                className="object-cover"
+              />
+            </div>
           ) : (
             <div
               className="absolute inset-2 flex items-center justify-center rounded-full text-3xl font-black"
-              style={{ background: 'linear-gradient(135deg,#6d5dfc,#22d3ee)' }}
+              style={{
+                background: `linear-gradient(135deg, ${accent}, ${cfg.mutedColor})`,
+                color: isLight ? '#fff' : cfg.bgTo,
+              }}
             >
               {c.name
                 .split(' ')
@@ -122,9 +150,7 @@ export default async function CreatorPage({ params }: { params: Promise<{ slug: 
         </div>
 
         <h1 className="mt-5 inline-flex items-center gap-2 text-[28px] font-black tracking-tight">
-          <span className="bg-linear-to-br from-white to-pink-300 bg-clip-text text-transparent">
-            {c.name}
-          </span>
+          <span style={{ color: cfg.textColor }}>{c.name}</span>
           <VerifiedBadge color={accent} />
         </h1>
 
@@ -132,9 +158,9 @@ export default async function CreatorPage({ params }: { params: Promise<{ slug: 
           <div
             className="mt-2.5 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-semibold"
             style={{
-              background: 'rgba(236,72,153,.12)',
-              border: '1px solid rgba(236,72,153,.3)',
-              color: '#f9a8d4',
+              background: `${accent}1a`,
+              border: `1px solid ${accent}4d`,
+              color: cfg.mutedColor,
             }}
           >
             <span
@@ -148,7 +174,7 @@ export default async function CreatorPage({ params }: { params: Promise<{ slug: 
         {c.bio && (
           <p
             className="mx-auto mt-4 max-w-82.5 text-[15px] leading-relaxed"
-            style={{ color: '#c4c4cc' }}
+            style={{ color: cfg.mutedColor }}
           >
             {c.bio}
           </p>
@@ -158,26 +184,34 @@ export default async function CreatorPage({ params }: { params: Promise<{ slug: 
         {featured && (
           <a
             href={`/r/${featured.id}`}
-            className="mt-7 block rounded-[22px] p-4.5 text-left transition-transform hover:-translate-y-0.5"
+            className="mt-7 block p-4.5 text-left transition-transform hover:-translate-y-0.5"
             style={{
-              background: 'linear-gradient(135deg,rgba(236,72,153,.16),rgba(124,58,237,.16))',
-              border: '1px solid rgba(236,72,153,.3)',
-              boxShadow: '0 0 36px -8px rgba(236,72,153,.45)',
+              background: cfg.cardBg,
+              border: `1px solid ${cfg.cardBorder}`,
+              boxShadow:
+                cfg.glowOpacity > 0
+                  ? `0 0 36px -8px ${accent}73`
+                  : '0 2px 12px rgba(0,0,0,.08)',
+              borderRadius: btnRadius,
             }}
           >
             <div className="flex items-center gap-3">
-              <LinkTile platform={featured.platform} size={48} />
+              <LinkTile platform={featured.platform} size={48} radius={btnRadius} />
               <div className="flex-1">
-                <div className="text-[16.5px] font-extrabold">
+                <div className="text-[16.5px] font-extrabold" style={{ color: cfg.textColor }}>
                   {featured.label ?? platformMeta(featured.platform).label}
                 </div>
-                <div className="text-[12.5px]" style={{ color: '#d4b8e8' }}>
+                <div className="text-[12.5px]" style={{ color: cfg.mutedColor }}>
                   Acesso completo · conteúdo exclusivo
                 </div>
               </div>
               <span
-                className="rounded-[10px] px-2.5 py-1 text-xs font-extrabold"
-                style={{ background: '#f9a8d4', color: '#0a0a0c' }}
+                className="px-2.5 py-1 text-xs font-extrabold"
+                style={{
+                  background: accent,
+                  color: isLight ? '#fff' : '#0a0a0c',
+                  borderRadius: btnRadius,
+                }}
               >
                 ABRIR
               </span>
@@ -193,20 +227,21 @@ export default async function CreatorPage({ params }: { params: Promise<{ slug: 
               <a
                 key={l.id}
                 href={`/r/${l.id}`}
-                className="flex items-center justify-center gap-2.5 rounded-[15px] p-3.75 text-[14.5px] font-semibold transition-transform hover:-translate-y-0.5"
+                className="flex items-center justify-center gap-2.5 p-3.75 text-[14.5px] font-semibold transition-transform hover:-translate-y-0.5"
                 style={{
-                  background: 'rgba(255,255,255,.04)',
-                  border: '1px solid rgba(255,255,255,.08)',
+                  background: cfg.cardBg,
+                  border: `1px solid ${cfg.cardBorder}`,
+                  color: cfg.textColor,
+                  borderRadius: btnRadius,
                 }}
               >
-                <LinkTile platform={l.platform} size={24} />
+                <LinkTile platform={l.platform} size={24} radius={btnRadius} />
                 {l.label ?? meta.label}
               </a>
             )
           })}
         </div>
 
-        {/* VIP subscription plans — map explicitly so internal ids (stripe/now) don't leak */}
         <VipPlans
           accent={accent}
           plans={c.plans.map((p) => ({
@@ -214,7 +249,7 @@ export default async function CreatorPage({ params }: { params: Promise<{ slug: 
             title: p.title,
             description: p.description,
             intervalDay: p.intervalDay,
-            prices: p.prices.map(pr => ({
+            prices: p.prices.map((pr) => ({
               currency: pr.currency,
               amountCents: pr.amountCents,
               provider: pr.provider,
@@ -224,14 +259,17 @@ export default async function CreatorPage({ params }: { params: Promise<{ slug: 
 
         <div
           className="mt-9 flex items-center justify-center gap-2 text-[11px] font-semibold tracking-wider"
-          style={{ color: '#52525b' }}
+          style={{ color: isLight ? '#71717a' : '#52525b' }}
         >
-          <span className="rounded-md border px-1.5 py-0.5" style={{ borderColor: '#3f3f46' }}>
+          <span
+            className="rounded-md border px-1.5 py-0.5"
+            style={{ borderColor: isLight ? '#d4d4d8' : '#3f3f46' }}
+          >
             18+
           </span>
           <span>All content is intended for adults only</span>
         </div>
-        <div className="mt-3.5 text-[11px]" style={{ color: '#3f3f46' }}>
+        <div className="mt-3.5 text-[11px]" style={{ color: isLight ? '#a1a1aa' : '#3f3f46' }}>
           © {new Date().getFullYear()} {c.name}
         </div>
       </main>
@@ -258,9 +296,8 @@ function VerifiedBadge({ color }: { color: string }) {
   )
 }
 
-function LinkTile({ platform, size }: { platform: string; size: number }) {
+function LinkTile({ platform, size, radius }: { platform: string; size: number; radius: string }) {
   const meta = platformMeta(platform)
-  const radius = size >= 44 ? 14 : size >= 36 ? 11 : 8
   return (
     <span
       className="flex shrink-0 items-center justify-center font-extrabold text-white"

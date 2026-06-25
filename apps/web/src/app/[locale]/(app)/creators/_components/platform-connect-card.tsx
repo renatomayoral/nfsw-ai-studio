@@ -90,10 +90,10 @@ export function PlatformConnectCard({ creatorId, config, initialConnection }: Pr
             <button
               onClick={() => disconnect.mutate()}
               disabled={disconnect.isPending}
-              className="rounded-lg p-1.5 text-muted-foreground hover:text-red-400"
-              title="Desconectar"
+              aria-label={`Desconectar ${config.label}`}
+              className="rounded-lg p-1.5 text-muted-foreground hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <Unlink className="h-3.5 w-3.5" />
+              <Unlink className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
           )}
         </div>

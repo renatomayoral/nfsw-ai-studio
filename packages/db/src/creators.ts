@@ -87,6 +87,18 @@ export const creator = pgTable(
       .array()
       .default(sql`'{}'::text[]`)
       .notNull(),
+    /**
+     * Page template key, e.g. 'neon-dark', 'rose-glam', 'minimal-white'.
+     * Controls the overall look of /p/[slug].
+     */
+    pageTemplate: text('page_template')
+      .$defaultFn(() => 'neon-dark')
+      .notNull(),
+    /**
+     * JSON blob with per-template overrides: accentColor, bgColor, fontFamily, etc.
+     * Stored as text and parsed at runtime.
+     */
+    pageConfig: text('page_config'),
     /** 'live' | 'draft' */
     status: text('status')
       .$defaultFn(() => 'draft')
