@@ -2,22 +2,13 @@
 
 import { PlatformConnectCard, type PlatformConnectConfig } from './platform-connect-card'
 import type { ConnectedPlatform } from '@/lib/creators'
-
-function PatreonLogo({ size = 18 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-      <rect width="32" height="32" rx="8" fill="#FF424D" />
-      <circle cx="19" cy="13" r="7" fill="white" />
-      <rect x="6" y="6" width="5" height="20" rx="1" fill="white" />
-    </svg>
-  )
-}
+import { PlatformLogo } from '@/components/platform-logos'
 
 const PATREON_CONFIG: PlatformConnectConfig = {
   platform: 'patreon',
   label: 'Patreon',
   color: '#FF424D',
-  logo: <PatreonLogo />,
+  logo: <PlatformLogo platform="patreon" size={28}  />,
   connectHref: (creatorId) => `/api/patreon/connect?creatorId=${creatorId}`,
   statusEndpoint: (id) => `/api/patreon/status?creatorId=${id}`,
   disconnectEndpoint: (id) => `/api/patreon/status?creatorId=${id}`,

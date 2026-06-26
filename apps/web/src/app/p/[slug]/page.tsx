@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm'
 import { db, schema } from '@repo/db'
 import { platformMeta } from '@/lib/creators'
 import { resolveConfig } from '@/lib/page-templates'
+import { PlatformLogo } from '@/components/platform-logos'
 import { VipPlans } from './vip-plans'
 
 const { creator, creatorLink, vipPlan, vipPlanPrice } = schema
@@ -83,8 +84,6 @@ export default async function CreatorPage({ params }: { params: Promise<{ slug: 
   )
 
   const accent = cfg.accentColor
-  const featured = c.links[0]
-  const rest = c.links.slice(1)
 
   const btnRadius =
     cfg.buttonStyle === 'pill' ? '22px' : cfg.buttonStyle === 'sharp' ? '6px' : '14px'
@@ -180,63 +179,37 @@ export default async function CreatorPage({ params }: { params: Promise<{ slug: 
           </p>
         )}
 
-        {/* featured link */}
-        {featured && (
-          <a
-            href={`/r/${featured.id}`}
-            className="mt-7 block p-4.5 text-left transition-transform hover:-translate-y-0.5"
-            style={{
-              background: cfg.cardBg,
-              border: `1px solid ${cfg.cardBorder}`,
-              boxShadow:
-                cfg.glowOpacity > 0
-                  ? `0 0 36px -8px ${accent}73`
-                  : '0 2px 12px rgba(0,0,0,.08)',
-              borderRadius: btnRadius,
-            }}
-          >
-            <div className="flex items-center gap-3">
-              <LinkTile platform={featured.platform} size={48} radius={btnRadius} />
-              <div className="flex-1">
-                <div className="text-[16.5px] font-extrabold" style={{ color: cfg.textColor }}>
-                  {featured.label ?? platformMeta(featured.platform).label}
-                </div>
-                <div className="text-[12.5px]" style={{ color: cfg.mutedColor }}>
-                  Acesso completo · conteúdo exclusivo
-                </div>
-              </div>
-              <span
-                className="px-2.5 py-1 text-xs font-extrabold"
-                style={{
-                  background: accent,
-                  color: isLight ? '#fff' : '#0a0a0c',
-                  borderRadius: btnRadius,
-                }}
-              >
-                ABRIR
-              </span>
-            </div>
-          </a>
-        )}
-
-        {/* secondary links — two per row */}
-        <div className="mt-3.5 grid grid-cols-2 gap-2.5 text-left">
-          {rest.map((l) => {
-            const meta = platformMeta(l.platform)
+        {/* all links — uniform card style, only icon changes */}
+        <div className="mt-7 flex flex-col gap-2.5">
+          {c.links.map((l) => {
+            const label = l.label ?? platformMeta(l.platform).label
             return (
               <a
                 key={l.id}
                 href={`/r/${l.id}`}
-                className="flex items-center justify-center gap-2.5 p-3.75 text-[14.5px] font-semibold transition-transform hover:-translate-y-0.5"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex w-full items-center gap-3 p-4 transition-transform hover:-translate-y-0.5"
                 style={{
                   background: cfg.cardBg,
                   border: `1px solid ${cfg.cardBorder}`,
-                  color: cfg.textColor,
+                  boxShadow: cfg.glowOpacity > 0 ? `0 0 28px -8px ${accent}55` : '0 1px 8px rgba(0,0,0,.06)',
                   borderRadius: btnRadius,
+                  color: cfg.textColor,
                 }}
               >
-                <LinkTile platform={l.platform} size={24} radius={btnRadius} />
-                {l.label ?? meta.label}
+                <PlatformLogo platform={l.platform} size={40} />
+                <span className="flex-1 text-[15px] font-bold">{label}</span>
+                <span
+                  className="px-3 py-1 text-[11px] font-extrabold tracking-wide"
+                  style={{
+                    background: accent,
+                    color: isLight ? '#fff' : '#0a0a0c',
+                    borderRadius: btnRadius,
+                  }}
+                >
+                  ABRIR
+                </span>
               </a>
             )
           })}
@@ -296,20 +269,3 @@ function VerifiedBadge({ color }: { color: string }) {
   )
 }
 
-function LinkTile({ platform, size, radius }: { platform: string; size: number; radius: string }) {
-  const meta = platformMeta(platform)
-  return (
-    <span
-      className="flex shrink-0 items-center justify-center font-extrabold text-white"
-      style={{
-        width: size,
-        height: size,
-        borderRadius: radius,
-        background: meta.color,
-        fontSize: size >= 44 ? 16 : 13,
-      }}
-    >
-      {meta.label.slice(0, 2).toUpperCase()}
-    </span>
-  )
-}

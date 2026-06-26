@@ -6,6 +6,7 @@ import { Plus, Trash2, GripVertical, ToggleLeft, ToggleRight } from 'lucide-reac
 import { Input } from '@repo/ui/components/input'
 import { platformMeta } from '@/lib/creators'
 import type { CreatorLinkStat } from '@/lib/creators'
+import { PlatformLogo } from '@/components/platform-logos'
 
 type Platform = { id: string; key: string; label: string; color: string; baseUrl: string; active: boolean }
 
@@ -165,7 +166,7 @@ function LinkRow({
   return (
     <div className="flex items-center gap-2.5 rounded-xl border border-border bg-background px-3 py-2.5">
       <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground/40" aria-hidden="true" />
-      <div className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: meta.color }} />
+      <PlatformLogo platform={link.platform} size={22}  />
       <span className="w-24 shrink-0 text-[12.5px] font-semibold">{link.label}</span>
       <Input
         value={url}

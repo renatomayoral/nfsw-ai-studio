@@ -6,6 +6,7 @@ import { useToast } from '@repo/ui/hooks/use-toast'
 import { useTranslations } from 'next-intl'
 import { type CreatorListRow } from '@/lib/creators'
 import { Avatar } from './avatar'
+import { PlatformLogo } from '@/components/platform-logos'
 
 type Props = { c: CreatorListRow; locale: string }
 
@@ -72,7 +73,7 @@ export function CreatorRow({ c, locale }: Props) {
       <div>
         {c.topLink ? (
           <span className="bg-secondary inline-flex items-center gap-2 rounded-full border px-2.5 py-1.5 text-[12.5px] font-semibold">
-            <span className="h-2 w-2 rounded-full" style={{ background: c.topLink.color }} />
+            <PlatformLogo platform={c.topLink.platform} size={16}  />
             {c.topLink.label}
           </span>
         ) : (

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
 import type { ConnectedPlatform } from '@/lib/creators'
+import { PlatformLogo } from '@/components/platform-logos'
 
 type Props = { creatorId: string; initialConnection?: ConnectedPlatform }
 
@@ -17,12 +18,7 @@ type FanvueStatus = {
 }
 
 function FanvueLogo({ size = 18 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-      <rect width="32" height="32" rx="8" fill="#6d5dfc"/>
-      <path d="M8 10h16M8 16h10M8 22h13" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-    </svg>
-  )
+  return <PlatformLogo platform="fanvue" size={size}  />
 }
 
 export function FanvueConnect({ creatorId, initialConnection }: Props) {

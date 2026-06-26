@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { RefreshCw, Unlink, ExternalLink, AlertTriangle } from 'lucide-react'
+import { PlatformLogo } from '@/components/platform-logos'
 import type { ConnectedPlatform } from '@/lib/creators'
 
 type Props = { creatorId: string; initialConnection?: ConnectedPlatform }
@@ -103,9 +104,7 @@ export function FanslyConnect({ creatorId, initialConnection }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#9333ea]/15 text-[10px] font-black text-[#9333ea]">
-            FY
-          </div>
+          <PlatformLogo platform="fansly" size={28}  />
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[13.5px] font-bold">Fansly</span>
